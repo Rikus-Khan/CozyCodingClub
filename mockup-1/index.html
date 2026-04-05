@@ -538,5 +538,7 @@
       setTimeout(() => s.remove(), 800);
     });
   </script>
+<div id="back-btn" style="position:fixed;top:16px;left:16px;z-index:9999;background:rgba(0,0,0,0.4);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:50px;padding:8px 16px;font-size:14px;cursor:pointer;opacity:0.5;transition:opacity 0.3s;font-family:sans-serif;backdrop-filter:blur(8px)" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.5'" onclick="location.href='../prototypes.html'">&larr; Back</div>
+<script>document.addEventListener('keydown',e=>{if(e.key==='Escape')location.href='../prototypes.html'});</script>
 </body>
 </html>
