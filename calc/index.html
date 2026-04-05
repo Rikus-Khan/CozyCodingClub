@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cozy Coder's Sunset Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Caveat:wght@400;700&family=Satisfy&family=Indie+Flower&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  overflow: hidden;
+  font-family: 'Pacifico', cursive;
+}
+
+/* Sunset animated background */
+#bg-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  background: linear-gradient(180deg, #0d1b2a 0%, #1b2838 15%, #2d1b69 30%, #6b2fa0 45%, #c2185b 60%, #ff6f00 75%, #ffab40 90%, #ffe082 100%);
+  animation: breathe 6s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { filter: brightness(1) saturate(1); }
+  50% { filter: brightness(1.15) saturate(1.2); }
+}
+
+/* Canvases */
+#particle-canvas, #star-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Calculator wrapper for scaling */
+#calc-wrapper {
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+/* ===== OPTIONS PANEL (slides out left) ===== */
+.options-panel {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  width: 240px;
+  background: rgba(20, 10, 30, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.08);
+  margin-right: 12px;
+  transform: translateX(calc(100% + 12px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.options-panel.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.options-panel h3 {
+  color: #ffcc80;
+  font-size: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(255,111,0,0.3);
+}
+
+.option-group {
+  margin-bottom: 16px;
+}
+
+.option-group label {
+  display: block;
+  color: rgba(255,224,178,0.8);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.option-group .slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.option-group .slider-row span {
+  color: rgba(255,224,178,0.5);
+  font-size: 11px;
+  min-width: 30px;
+}
+
+.option-group input[type="range"] {
+  flex: 1;
+  accent-color: #ff6f00;
+  height: 4px;
+}
+
+.option-group .btn-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.opt-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #ffcc80;
+  padding: 5px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.opt-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.opt-btn.active {
+  background: rgba(255,111,0,0.3);
+  border-color: rgba(255,111,0,0.5);
+  color: #ffe0b2;
+}
+
+/* Gradient swatch buttons */
+.gradient-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.gradient-swatch:hover {
+  transform: scale(1.1);
+  border-color: rgba(255,255,255,0.4);
+}
+
+.gradient-swatch.active {
+  border-color: #ffcc80;
+  box-shadow: 0 0 10px rgba(255,111,0,0.5);
+}
+
+/* Settings toggle button */
+.settings-toggle {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #ffcc80;
+  width: 24px;
+  height: 48px;
+  border-radius: 8px 0 0 8px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: absolute;
+  left: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  font-family: sans-serif;
+  padding: 0;
+  line-height: 1;
+}
+
+.settings-toggle:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.settings-toggle.open {
+  transform: translateY(-50%) scaleX(-1);
+}
+
+.calculator {
+  width: 340px;
+  background: rgba(20, 10, 30, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+}
+
+/* Title */
+.calc-title {
+  text-align: center;
+  color: #ffcc80;
+  font-size: 22px;
+  margin-bottom: 16px;
+  text-shadow: 0 0 15px rgba(255,111,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Display */
+.display {
+  background: rgba(0,0,0,0.4);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  border: 1px solid rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+
+.display .expression {
+  color: rgba(255,204,128,0.7);
+  font-size: 16px;
+  min-height: 24px;
+  word-break: break-all;
+  text-align: right;
+  width: 100%;
+}
+
+.display .result {
+  color: #ffe0b2;
+  font-size: 36px;
+  font-weight: 600;
+  word-break: break-all;
+  text-align: right;
+  width: 100%;
+  transition: text-shadow 0.4s ease;
+}
+
+.display .result.glow {
+  text-shadow: 0 0 20px #ff6f00, 0 0 40px #ff8f00, 0 0 60px #ffab40;
+}
+
+/* Button grid */
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.btn {
+  position: relative;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #ffe0b2;
+  font-size: 20px;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  user-select: none;
+  outline: none;
+}
+
+/* Shape classes */
+.shape-rounded .btn { border-radius: 14px; }
+.shape-circle .btn { border-radius: 50%; padding: 18px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+.shape-squircle .btn { border-radius: 28%; }
+
+.btn.zero { grid-column: span 2; }
+.shape-circle .btn.zero { border-radius: 50px; aspect-ratio: auto; }
+
+.btn.operator {
+  background: rgba(255,111,0,0.25);
+  border-color: rgba(255,111,0,0.3);
+  color: #ffab40;
+}
+
+.btn.equals {
+  background: linear-gradient(135deg, #ff6f00, #c2185b);
+  border-color: rgba(255,111,0,0.4);
+  color: #fff;
+}
+
+.btn.func {
+  background: rgba(194,24,91,0.2);
+  border-color: rgba(194,24,91,0.3);
+  color: #f48fb1;
+}
+
+/* Hover warmth — always on */
+.btn:hover {
+  background: rgba(255,152,0,0.3) !important;
+  border-color: rgba(255,152,0,0.5) !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255,111,0,0.3);
+}
+
+/* Ripple effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,171,64,0.4);
+  transform: scale(0);
+  animation: ripple-anim 0.6s ease-out;
+  pointer-events: none;
+}
+
+@keyframes ripple-anim {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Color pulse animation on buttons */
+@keyframes color-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 rgba(255,111,0,0); }
+  50% { box-shadow: inset 0 0 20px rgba(255,111,0,0.15); }
+}
+
+.anim-color-pulse .btn {
+  animation: color-pulse 3s ease-in-out infinite;
+}
+
+.anim-color-pulse .btn:nth-child(odd) {
+  animation-delay: -1.5s;
+}
+
+/* Rainbow shimmer on display */
+@keyframes rainbow-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.anim-rainbow .display {
+  background: linear-gradient(90deg,
+    rgba(255,111,0,0.15),
+    rgba(194,24,91,0.15),
+    rgba(106,27,154,0.15),
+    rgba(255,111,0,0.15));
+  background-size: 200% 100%;
+  animation: rainbow-shimmer 4s linear infinite;
+}
+
+/* Size slider */
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255,224,178,0.6);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.slider-container input[type="range"] {
+  width: 200px;
+  accent-color: #ff6f00;
+}
+</style>
+</head>
+<body>
+<div id="bg-canvas"></div>
+<canvas id="particle-canvas"></canvas>
+<canvas id="star-canvas"></canvas>
+
+<div id="calc-wrapper">
+  <!-- Options panel slides out to the left -->
+  <div class="options-panel" id="options-panel">
+    <h3>Options</h3>
+
+    <div class="option-group">
+      <label>Sky Colors</label>
+      <div class="btn-row" id="gradient-buttons"></div>
+    </div>
+
+    <div class="option-group">
+      <label>Shooting Stars Speed</label>
+      <div class="slider-row">
+        <span>Rare</span>
+        <input type="range" id="star-freq" min="0" max="100" value="30">
+        <span>Crazy</span>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <label>Breathing Sky Speed</label>
+      <div class="slider-row">
+        <span>Slow</span>
+        <input type="range" id="breathe-speed" min="1" max="10" value="4">
+        <span>Fast</span>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <label>Extra Animation</label>
+      <div class="btn-row">
+        <button class="opt-btn active" data-anim="none">None</button>
+        <button class="opt-btn" data-anim="color-pulse">Color Pulse</button>
+        <button class="opt-btn" data-anim="rainbow">Rainbow Display</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <label>Font</label>
+      <div class="btn-row" id="font-buttons"></div>
+    </div>
+
+    <div class="option-group">
+      <label>Button Shape</label>
+      <div class="btn-row" id="shape-buttons"></div>
+    </div>
+  </div>
+
+  <div class="calculator shape-rounded" id="calculator">
+    <button class="settings-toggle" id="settings-toggle" title="Options">&#8249;</button>
+    <div class="calc-title">Cozy Coder's Sunset Calc!</div>
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="buttons" id="buttons">
+      <button class="btn func" data-action="clear">C</button>
+      <button class="btn func" data-action="backspace">&#9003;</button>
+      <button class="btn func" data-action="negate">+/&minus;</button>
+      <button class="btn operator" data-action="operator" data-value="÷">÷</button>
+
+      <button class="btn" data-action="digit" data-value="7">7</button>
+      <button class="btn" data-action="digit" data-value="8">8</button>
+      <button class="btn" data-action="digit" data-value="9">9</button>
+      <button class="btn operator" data-action="operator" data-value="×">×</button>
+
+      <button class="btn" data-action="digit" data-value="4">4</button>
+      <button class="btn" data-action="digit" data-value="5">5</button>
+      <button class="btn" data-action="digit" data-value="6">6</button>
+      <button class="btn operator" data-action="operator" data-value="-">&minus;</button>
+
+      <button class="btn" data-action="digit" data-value="1">1</button>
+      <button class="btn" data-action="digit" data-value="2">2</button>
+      <button class="btn" data-action="digit" data-value="3">3</button>
+      <button class="btn operator" data-action="operator" data-value="+">+</button>
+
+      <button class="btn zero" data-action="digit" data-value="0">0</button>
+      <button class="btn" data-action="decimal">.</button>
+      <button class="btn equals" data-action="equals">=</button>
+    </div>
+  </div>
+
+  <div class="slider-container">
+    <span>&#9898;</span>
+    <input type="range" id="size-slider" min="0.5" max="1.8" step="0.05" value="1">
+    <span>&#11044;</span>
+  </div>
+</div>
+
+<script>
+// ===== CALCULATOR STATE =====
+let currentInput = '0';
+let previousInput = '';
+let operator = null;
+let shouldResetInput = false;
+let expression = '';
+
+const resultEl = document.getElementById('result');
+const expressionEl = document.getElementById('expression');
+const calculator = document.getElementById('calculator');
+const wrapper = document.getElementById('calc-wrapper');
+
+function updateDisplay() {
+  resultEl.textContent = currentInput;
+  expressionEl.textContent = expression;
+  const len = currentInput.length;
+  if (len > 12) resultEl.style.fontSize = '20px';
+  else if (len > 9) resultEl.style.fontSize = '26px';
+  else resultEl.style.fontSize = '36px';
+}
+
+function inputDigit(d) {
+  if (shouldResetInput) {
+    currentInput = d;
+    shouldResetInput = false;
+  } else {
+    currentInput = currentInput === '0' ? d : currentInput + d;
+  }
+  updateDisplay();
+}
+
+function inputDecimal() {
+  if (shouldResetInput) {
+    currentInput = '0.';
+    shouldResetInput = false;
+    updateDisplay();
+    return;
+  }
+  if (!currentInput.includes('.')) {
+    currentInput += '.';
+  }
+  updateDisplay();
+}
+
+function handleOperator(op) {
+  const current = parseFloat(currentInput);
+  if (operator && !shouldResetInput) {
+    const prev = parseFloat(previousInput);
+    const result = calculate(prev, current, operator);
+    currentInput = formatResult(result);
+    expression = currentInput + ' ' + op + ' ';
+  } else {
+    expression = currentInput + ' ' + op + ' ';
+  }
+  previousInput = currentInput;
+  operator = op;
+  shouldResetInput = true;
+  updateDisplay();
+}
+
+function calculate(a, b, op) {
+  switch(op) {
+    case '+': return a + b;
+    case '-': return a - b;
+    case '×': return a * b;
+    case '÷': return b === 0 ? 'Error' : a / b;
+    default: return b;
+  }
+}
+
+function formatResult(val) {
+  if (val === 'Error') return 'Error';
+  if (!isFinite(val)) return 'Error';
+  const rounded = Math.round(val * 1e10) / 1e10;
+  const str = rounded.toString();
+  if (str.length > 14) return parseFloat(rounded.toPrecision(10)).toString();
+  return str;
+}
+
+function handleEquals() {
+  if (!operator) return;
+  const prev = parseFloat(previousInput);
+  const current = parseFloat(currentInput);
+  const result = calculate(prev, current, operator);
+  expression = previousInput + ' ' + operator + ' ' + currentInput + ' =';
+  currentInput = formatResult(result);
+  operator = null;
+  previousInput = '';
+  shouldResetInput = true;
+  updateDisplay();
+  // Display glow — always on
+  resultEl.classList.add('glow');
+  setTimeout(() => resultEl.classList.remove('glow'), 600);
+}
+
+function handleClear() {
+  currentInput = '0';
+  previousInput = '';
+  operator = null;
+  shouldResetInput = false;
+  expression = '';
+  updateDisplay();
+}
+
+function handleBackspace() {
+  if (shouldResetInput) return;
+  if (currentInput.length === 1 || (currentInput.length === 2 && currentInput[0] === '-')) {
+    currentInput = '0';
+  } else {
+    currentInput = currentInput.slice(0, -1);
+  }
+  updateDisplay();
+}
+
+function handleNegate() {
+  if (currentInput === '0' || currentInput === 'Error') return;
+  currentInput = currentInput[0] === '-' ? currentInput.slice(1) : '-' + currentInput;
+  updateDisplay();
+}
+
+// ===== BUTTON CLICKS (ripple always on) =====
+document.getElementById('buttons').addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn');
+  if (!btn) return;
+  // Ripple — always on
+  const ripple = document.createElement('span');
+  ripple.classList.add('ripple');
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+  ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+  btn.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+
+  handleAction(btn.dataset.action, btn.dataset.value);
+});
+
+function handleAction(action, value) {
+  if (currentInput === 'Error' && action !== 'clear') handleClear();
+  switch(action) {
+    case 'digit': inputDigit(value); break;
+    case 'decimal': inputDecimal(); break;
+    case 'operator': handleOperator(value); break;
+    case 'equals': handleEquals(); break;
+    case 'clear': handleClear(); break;
+    case 'backspace': handleBackspace(); break;
+    case 'negate': handleNegate(); break;
+  }
+}
+
+// ===== KEYBOARD =====
+document.addEventListener('keydown', (e) => {
+  if (e.key >= '0' && e.key <= '9') handleAction('digit', e.key);
+  else if (e.key === '.') handleAction('decimal');
+  else if (e.key === '+') handleAction('operator', '+');
+  else if (e.key === '-') handleAction('operator', '-');
+  else if (e.key === '*') handleAction('operator', '×');
+  else if (e.key === '/') { e.preventDefault(); handleAction('operator', '÷'); }
+  else if (e.key === 'Enter' || e.key === '=') handleAction('equals');
+  else if (e.key === 'Backspace') handleAction('backspace');
+  else if (e.key === 'Delete') handleAction('backspace');
+  else if (e.key === 'Escape') handleAction('clear');
+});
+
+// ===== OPTIONS PANEL =====
+const optionsPanel = document.getElementById('options-panel');
+const settingsToggle = document.getElementById('settings-toggle');
+
+settingsToggle.addEventListener('click', () => {
+  optionsPanel.classList.toggle('open');
+  settingsToggle.classList.toggle('open');
+});
+
+// ===== SHOOTING STARS (always on, frequency slider) =====
+const starCanvas = document.getElementById('star-canvas');
+const starCtx = starCanvas.getContext('2d');
+let starFrequency = 0.03; // default
+
+function resizeStarCanvas() {
+  starCanvas.width = window.innerWidth;
+  starCanvas.height = window.innerHeight;
+}
+resizeStarCanvas();
+window.addEventListener('resize', resizeStarCanvas);
+
+let shootingStars = [];
+
+function createShootingStar() {
+  const startX = Math.random() * starCanvas.width * 0.8;
+  const startY = Math.random() * starCanvas.height * 0.4;
+  const angle = Math.PI / 6 + Math.random() * Math.PI / 6;
+  const speed = 8 + Math.random() * 12;
+  const length = 80 + Math.random() * 120;
+  return {
+    x: startX, y: startY, angle, speed, length,
+    life: 1.0,
+    decay: 0.008 + Math.random() * 0.012,
+    color: ['#ffffff','#ffe082','#ffcc80','#ffab40'][Math.floor(Math.random()*4)],
+    width: 1.5 + Math.random() * 2,
+  };
+}
+
+document.getElementById('star-freq').addEventListener('input', (e) => {
+  // 0 = rare (0.005), 100 = crazy (0.15)
+  starFrequency = 0.005 + (e.target.value / 100) * 0.145;
+});
+
+function animateStars() {
+  starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+
+  if (Math.random() < starFrequency && shootingStars.length < 8) {
+    shootingStars.push(createShootingStar());
+  }
+
+  shootingStars = shootingStars.filter(s => s.life > 0);
+
+  shootingStars.forEach(s => {
+    s.x += Math.cos(s.angle) * s.speed;
+    s.y += Math.sin(s.angle) * s.speed;
+    s.life -= s.decay;
+    const life = Math.max(0, s.life);
+
+    const tailX = s.x - Math.cos(s.angle) * s.length;
+    const tailY = s.y - Math.sin(s.angle) * s.length;
+
+    // Use rgba for safe alpha handling
+    const r = parseInt(s.color.slice(1,3), 16);
+    const g = parseInt(s.color.slice(3,5), 16);
+    const b = parseInt(s.color.slice(5,7), 16);
+
+    const gradient = starCtx.createLinearGradient(tailX, tailY, s.x, s.y);
+    gradient.addColorStop(0, 'rgba(255,255,255,0)');
+    gradient.addColorStop(0.6, `rgba(${r},${g},${b},${(life * 0.24).toFixed(3)})`);
+    gradient.addColorStop(1, `rgba(${r},${g},${b},${life.toFixed(3)})`);
+
+    starCtx.beginPath();
+    starCtx.moveTo(tailX, tailY);
+    starCtx.lineTo(s.x, s.y);
+    starCtx.strokeStyle = gradient;
+    starCtx.lineWidth = s.width;
+    starCtx.lineCap = 'round';
+    starCtx.stroke();
+
+    starCtx.beginPath();
+    starCtx.arc(s.x, s.y, s.width * 2, 0, Math.PI * 2);
+    starCtx.fillStyle = `rgba(255,255,240,${(life * 0.6).toFixed(3)})`;
+    starCtx.fill();
+
+    if (Math.random() < 0.4) {
+      const sparkX = tailX + Math.random() * (s.x - tailX) * 0.6;
+      const sparkY = tailY + Math.random() * (s.y - tailY) * 0.6;
+      starCtx.beginPath();
+      starCtx.arc(sparkX + (Math.random()-0.5)*8, sparkY + (Math.random()-0.5)*8, Math.random() * 1.5, 0, Math.PI * 2);
+      starCtx.fillStyle = `rgba(255,224,130,${(life * 0.5).toFixed(3)})`;
+      starCtx.fill();
+    }
+  });
+
+  requestAnimationFrame(animateStars);
+}
+animateStars();
+
+// ===== SKY GRADIENTS =====
+const gradients = [
+  { name: 'Sunset',       css: 'linear-gradient(180deg, #0d1b2a 0%, #1b2838 15%, #2d1b69 30%, #6b2fa0 45%, #c2185b 60%, #ff6f00 75%, #ffab40 90%, #ffe082 100%)' },
+  { name: 'Ocean',        css: 'linear-gradient(180deg, #0a0a2e 0%, #0d1f4b 20%, #1a3a6b 40%, #2e7d8e 60%, #48c6a9 80%, #a8edea 100%)' },
+  { name: 'Cotton Candy', css: 'linear-gradient(180deg, #1a0a2e 0%, #4a1a6b 20%, #8e3a9e 40%, #e76faa 55%, #ffa3c4 70%, #ffd1dc 85%, #fff0f5 100%)' },
+  { name: 'Forest',       css: 'linear-gradient(180deg, #0a1a0a 0%, #0d2818 20%, #1a4a2a 40%, #2d7a3a 55%, #5aad50 70%, #a8d86e 85%, #d4f0a0 100%)' },
+  { name: 'Lava',         css: 'linear-gradient(180deg, #0a0000 0%, #2a0a00 15%, #5c1000 30%, #8b1a00 45%, #c62828 55%, #ff5722 70%, #ff9800 85%, #ffc107 100%)' },
+  { name: 'Aurora',       css: 'linear-gradient(180deg, #0a0020 0%, #0d0a3e 15%, #1a1a6b 30%, #0d6b5e 45%, #2ecc71 55%, #85e085 68%, #c39bd3 80%, #f0b0ff 92%, #1a0a30 100%)' },
+  { name: 'Midnight',     css: 'linear-gradient(180deg, #000010 0%, #05051e 20%, #0a0a3a 40%, #151560 60%, #1a1a80 75%, #2020a0 90%, #0a0a3a 100%)' },
+  { name: 'Peach',        css: 'linear-gradient(180deg, #2d1b30 0%, #4a2040 20%, #8b3a62 40%, #d4727a 55%, #f4a582 70%, #fcd5b5 85%, #fff4e0 100%)' },
+];
+
+const bgCanvas = document.getElementById('bg-canvas');
+const gradientContainer = document.getElementById('gradient-buttons');
+
+gradients.forEach((g, i) => {
+  const swatch = document.createElement('button');
+  swatch.className = 'gradient-swatch' + (i === 0 ? ' active' : '');
+  swatch.title = g.name;
+  swatch.style.background = g.css;
+  swatch.addEventListener('click', () => {
+    gradientContainer.querySelectorAll('.gradient-swatch').forEach(s => s.classList.remove('active'));
+    swatch.classList.add('active');
+    bgCanvas.style.background = g.css;
+  });
+  gradientContainer.appendChild(swatch);
+});
+
+// ===== BREATHING SKY SPEED =====
+document.getElementById('breathe-speed').addEventListener('input', (e) => {
+  // 1 = 12s (slow), 10 = 1.5s (fast)
+  const duration = 12 - (e.target.value - 1) * (10.5 / 9);
+  bgCanvas.style.animationDuration = duration.toFixed(1) + 's';
+});
+
+// ===== FLOATING PARTICLES (always on) =====
+const particleCanvas = document.getElementById('particle-canvas');
+const ctx = particleCanvas.getContext('2d');
+let particles = [];
+
+function resizeParticleCanvas() {
+  particleCanvas.width = window.innerWidth;
+  particleCanvas.height = window.innerHeight;
+}
+resizeParticleCanvas();
+window.addEventListener('resize', resizeParticleCanvas);
+
+function createParticle() {
+  return {
+    x: Math.random() * particleCanvas.width,
+    y: particleCanvas.height + 10,
+    size: Math.random() * 3 + 1,
+    speedY: Math.random() * 1.5 + 0.5,
+    speedX: (Math.random() - 0.5) * 0.5,
+    opacity: Math.random() * 0.6 + 0.2,
+    color: ['#ffab40','#ff6f00','#ff8a65','#ffcc80','#f48fb1'][Math.floor(Math.random()*5)],
+  };
+}
+
+for (let i = 0; i < 40; i++) {
+  const p = createParticle();
+  p.y = Math.random() * particleCanvas.height;
+  particles.push(p);
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+  particles.forEach(p => {
+    p.y -= p.speedY;
+    p.x += p.speedX;
+    if (p.y < -10) Object.assign(p, createParticle());
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.opacity;
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ===== EXTRA ANIMATIONS (toggle in options) =====
+const animBtns = document.querySelectorAll('[data-anim]');
+animBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.body.classList.remove('anim-color-pulse', 'anim-rainbow');
+    animBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (btn.dataset.anim !== 'none') {
+      document.body.classList.add('anim-' + btn.dataset.anim);
+    }
+  });
+});
+
+// ===== FONTS =====
+const fonts = [
+  { name: 'Pacifico', family: "'Pacifico', cursive" },
+  { name: 'Caveat', family: "'Caveat', cursive" },
+  { name: 'Satisfy', family: "'Satisfy', cursive" },
+  { name: 'Indie Flower', family: "'Indie Flower', cursive" },
+  { name: 'Dancing Script', family: "'Dancing Script', cursive" },
+];
+
+const fontContainer = document.getElementById('font-buttons');
+fonts.forEach((f, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'opt-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = f.name;
+  btn.style.fontFamily = f.family;
+  btn.addEventListener('click', () => {
+    fontContainer.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.body.style.fontFamily = f.family;
+  });
+  fontContainer.appendChild(btn);
+});
+
+// ===== SHAPES =====
+const shapes = [
+  { name: 'Rounded', class: 'shape-rounded' },
+  { name: 'Circle', class: 'shape-circle' },
+  { name: 'Squircle', class: 'shape-squircle' },
+];
+
+const shapeContainer = document.getElementById('shape-buttons');
+shapes.forEach((s, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'opt-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = s.name;
+  btn.addEventListener('click', () => {
+    shapeContainer.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    shapes.forEach(sh => calculator.classList.remove(sh.class));
+    calculator.classList.add(s.class);
+  });
+  shapeContainer.appendChild(btn);
+});
+
+// ===== SIZE SLIDER =====
+const sizeSlider = document.getElementById('size-slider');
+sizeSlider.addEventListener('input', () => {
+  wrapper.style.transform = `scale(${sizeSlider.value})`;
+});
+</script>
+</body>
+</html>

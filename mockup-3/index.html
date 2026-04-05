@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cozy Coding Club</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Patrick+Hand&family=Kalam:wght@300;400;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --paper: #fdf6e3;
+      --paper-dark: #f5e6c8;
+      --ink: #3a2f27;
+      --ink-light: #6b5d52;
+      --pink: #e8a0bf;
+      --pink-dark: #d4789e;
+      --blue: #89b4d4;
+      --blue-dark: #6a9bc0;
+      --green: #a8d5a2;
+      --green-dark: #7fbf76;
+      --yellow: #f2d98b;
+      --yellow-dark: #e6c44f;
+      --orange: #f0b27a;
+      --purple: #c3a6d8;
+      --red: #e88a8a;
+      --line-color: #c9dae8;
+      --margin-color: #e8a0a0;
+      --shadow: rgba(58, 47, 39, 0.12);
+      --font-hand: 'Caveat', cursive;
+      --font-neat: 'Patrick Hand', cursive;
+      --font-body: 'Kalam', cursive;
+      --font-ui: 'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(232, 160, 191, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(137, 180, 212, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(168, 213, 162, 0.06) 0%, transparent 50%);
+    }
+
+    /* ===== LINED PAPER TEXTURE ===== */
+    .lined-paper {
+      background-image:
+        repeating-linear-gradient(
+          transparent,
+          transparent 31px,
+          var(--line-color) 31px,
+          var(--line-color) 32px
+        );
+      background-size: 100% 32px;
+      padding-top: 8px;
+    }
+
+    .lined-paper-margin {
+      background-image:
+        linear-gradient(to right, transparent 59px, var(--margin-color) 59px, var(--margin-color) 61px, transparent 61px),
+        repeating-linear-gradient(
+          transparent,
+          transparent 31px,
+          var(--line-color) 31px,
+          var(--line-color) 32px
+        );
+      background-size: 100% 32px;
+      padding-left: 72px;
+      padding-top: 8px;
+    }
+
+    /* ===== HAND-DRAWN BORDERS ===== */
+    .sketch-border {
+      border: 2px solid var(--ink);
+      border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    }
+
+    .sketch-border-alt {
+      border: 2px solid var(--ink);
+      border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px;
+    }
+
+    .sketch-border-soft {
+      border: 1.5px solid var(--ink-light);
+      border-radius: 255px 25px 225px 25px / 25px 225px 25px 255px;
+    }
+
+    /* ===== DOODLE DECORATIONS ===== */
+    .doodle-star {
+      display: inline-block;
+      font-size: 1.2em;
+      animation: twinkle 2s ease-in-out infinite;
+    }
+    .doodle-star:nth-child(2) { animation-delay: 0.5s; }
+    .doodle-star:nth-child(3) { animation-delay: 1s; }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* ===== TAPE DECORATION ===== */
+    .tape {
+      position: absolute;
+      width: 80px;
+      height: 24px;
+      background: rgba(242, 217, 139, 0.6);
+      border: 1px solid rgba(200, 180, 100, 0.3);
+      z-index: 2;
+    }
+    .tape-top-left {
+      top: -10px; left: 15px;
+      transform: rotate(-8deg);
+    }
+    .tape-top-right {
+      top: -10px; right: 15px;
+      transform: rotate(6deg);
+    }
+    .tape-bottom-right {
+      bottom: -10px; right: 20px;
+      transform: rotate(-4deg);
+    }
+
+    /* ===== CONTAINER ===== */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ===== NAVIGATION ===== */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--paper);
+      border-bottom: 2px dashed var(--ink-light);
+      padding: 12px 0;
+      backdrop-filter: blur(8px);
+      background: rgba(253, 246, 227, 0.92);
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: var(--font-hand);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--pink-dark);
+      text-decoration: none;
+      transition: transform 0.3s ease;
+    }
+    .nav-logo:hover { transform: rotate(-3deg) scale(1.05); }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 8px;
+    }
+
+    .nav-links a {
+      font-family: var(--font-neat);
+      font-size: 1.1rem;
+      color: var(--ink);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 14px;
+      right: 14px;
+      height: 2px;
+      background: var(--pink);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .nav-links a:hover::after { transform: scaleX(1); }
+    .nav-links a:hover { color: var(--pink-dark); }
+
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--ink);
+      padding: 4px 8px;
+    }
+
+    /* ===== HERO / HEADER ===== */
+    .hero {
+      text-align: center;
+      padding: 60px 20px 50px;
+      position: relative;
+    }
+
+    .hero-notebook {
+      background: white;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 40px 40px 50px;
+      position: relative;
+      box-shadow:
+        3px 3px 0 var(--shadow),
+        6px 6px 15px var(--shadow);
+      border-radius: 4px;
+      transform: rotate(-0.5deg);
+    }
+
+    .hero-notebook .lined-paper-margin {
+      padding-left: 0;
+    }
+
+    /* Spiral binding dots */
+    .hero-notebook::before {
+      content: '';
+      position: absolute;
+      left: -15px;
+      top: 20px;
+      bottom: 20px;
+      width: 30px;
+      background:
+        radial-gradient(circle at 50% 0, var(--ink-light) 5px, transparent 5px);
+      background-size: 30px 40px;
+      background-position: 0 10px;
+    }
+
+    .hero-title {
+      font-family: var(--font-hand);
+      font-size: clamp(2.5rem, 7vw, 4.5rem);
+      color: var(--pink-dark);
+      line-height: 1.1;
+      margin-bottom: 10px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .hero-title .underline-doodle {
+      position: absolute;
+      bottom: -5px;
+      left: -10px;
+      right: -10px;
+      height: 12px;
+      background: linear-gradient(90deg, transparent 5%, var(--yellow) 15%, var(--yellow) 85%, transparent 95%);
+      border-radius: 50%;
+      opacity: 0.6;
+      transform: rotate(-1deg);
+    }
+
+    .hero-subtitle {
+      font-family: var(--font-neat);
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      color: var(--ink-light);
+      margin-top: 16px;
+    }
+
+    .hero-doodles {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .doodle {
+      position: absolute;
+      font-size: 1.8rem;
+      opacity: 0.3;
+      animation: float 6s ease-in-out infinite;
+    }
+    .doodle:nth-child(1) { top: 15%; left: 5%; animation-delay: 0s; }
+    .doodle:nth-child(2) { top: 25%; right: 8%; animation-delay: 1s; }
+    .doodle:nth-child(3) { bottom: 20%; left: 8%; animation-delay: 2s; }
+    .doodle:nth-child(4) { bottom: 30%; right: 5%; animation-delay: 3s; }
+    .doodle:nth-child(5) { top: 50%; left: 3%; animation-delay: 1.5s; }
+    .doodle:nth-child(6) { top: 10%; right: 15%; animation-delay: 2.5s; font-size: 1.4rem; }
+    .doodle:nth-child(7) { bottom: 10%; right: 12%; animation-delay: 0.5s; font-size: 1.4rem; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      33% { transform: translateY(-8px) rotate(3deg); }
+      66% { transform: translateY(4px) rotate(-2deg); }
+    }
+
+    .hero-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--pink);
+      margin: 20px auto 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      border: 3px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink-light);
+      animation: wobbleGentle 4s ease-in-out infinite;
+    }
+
+    @keyframes wobbleGentle {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(2deg); }
+      75% { transform: rotate(-2deg); }
+    }
+
+    /* ===== SECTION HEADERS ===== */
+    .section-header {
+      font-family: var(--font-hand);
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      color: var(--ink);
+      margin-bottom: 30px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .section-header .accent {
+      color: var(--blue-dark);
+    }
+
+    .section-header::after {
+      content: '';
+      display: block;
+      height: 3px;
+      margin-top: 4px;
+      background: linear-gradient(90deg, var(--pink), var(--blue), var(--green));
+      border-radius: 2px;
+      animation: shimmer 3s ease-in-out infinite;
+      background-size: 200% 100%;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* ===== PROJECTS SECTION ===== */
+    .projects-section {
+      padding: 50px 0;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 30px;
+    }
+
+    .project-card {
+      position: relative;
+      padding: 28px 22px 22px;
+      min-height: 220px;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      cursor: pointer;
+      transform-origin: center center;
+    }
+
+    .project-card:hover {
+      transform: rotate(-1deg) translateY(-6px) scale(1.02);
+      z-index: 2;
+    }
+
+    /* Sticky note styles */
+    .sticky-yellow {
+      background: linear-gradient(135deg, #fff9c4 0%, #f9f0a0 100%);
+      box-shadow: 3px 3px 0 rgba(200, 180, 80, 0.3), 5px 5px 15px var(--shadow);
+      border-radius: 2px 2px 30px 2px / 2px 2px 2px 2px;
+    }
+    .sticky-pink {
+      background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+      box-shadow: 3px 3px 0 rgba(200, 120, 140, 0.3), 5px 5px 15px var(--shadow);
+      border-radius: 2px 30px 2px 2px / 2px 2px 2px 2px;
+    }
+    .sticky-blue {
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      box-shadow: 3px 3px 0 rgba(100, 150, 200, 0.3), 5px 5px 15px var(--shadow);
+      border-radius: 30px 2px 2px 2px / 2px 2px 2px 2px;
+    }
+    .sticky-green {
+      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      box-shadow: 3px 3px 0 rgba(100, 170, 100, 0.3), 5px 5px 15px var(--shadow);
+      border-radius: 2px 2px 2px 30px / 2px 2px 2px 2px;
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%) rotate(2deg);
+      width: 60px;
+      height: 20px;
+      background: rgba(242, 217, 139, 0.55);
+      border: 1px solid rgba(200, 180, 100, 0.25);
+      z-index: 1;
+    }
+
+    .project-card:nth-child(1) { transform: rotate(-2deg); }
+    .project-card:nth-child(2) { transform: rotate(1.5deg); }
+    .project-card:nth-child(3) { transform: rotate(-0.5deg); }
+    .project-card:nth-child(4) { transform: rotate(2deg); }
+
+    .project-card:nth-child(1):hover { transform: rotate(-3deg) translateY(-6px) scale(1.02); }
+    .project-card:nth-child(2):hover { transform: rotate(0.5deg) translateY(-6px) scale(1.02); }
+    .project-card:nth-child(3):hover { transform: rotate(-1.5deg) translateY(-6px) scale(1.02); }
+    .project-card:nth-child(4):hover { transform: rotate(1deg) translateY(-6px) scale(1.02); }
+
+    .project-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .project-title {
+      font-family: var(--font-hand);
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .project-desc {
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: var(--ink-light);
+      line-height: 1.5;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .tag {
+      font-family: var(--font-ui);
+      font-size: 0.7rem;
+      padding: 2px 10px;
+      border-radius: 20px;
+      border: 1.5px solid var(--ink-light);
+      color: var(--ink-light);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    /* ===== BLOG SECTION ===== */
+    .blog-section {
+      padding: 50px 0 60px;
+    }
+
+    .blog-entries {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .blog-entry {
+      background: white;
+      padding: 28px 30px 28px 80px;
+      position: relative;
+      box-shadow: 2px 2px 10px var(--shadow);
+      border-radius: 2px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      /* Lined paper with margin */
+      background-image:
+        linear-gradient(to right, transparent 59px, var(--margin-color) 59px, var(--margin-color) 61px, transparent 61px),
+        repeating-linear-gradient(
+          transparent,
+          transparent 31px,
+          var(--line-color) 31px,
+          var(--line-color) 32px
+        );
+      background-size: 100% 32px;
+    }
+
+    .blog-entry:hover {
+      transform: translateX(4px);
+      box-shadow: 4px 4px 18px var(--shadow);
+    }
+
+    /* Paper curl effect */
+    .blog-entry::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 0 25px 25px;
+      border-color: transparent transparent var(--paper-dark) transparent;
+      transition: border-width 0.3s ease;
+    }
+
+    .blog-entry:hover::after {
+      border-width: 0 0 35px 35px;
+    }
+
+    .blog-date {
+      font-family: var(--font-neat);
+      font-size: 0.85rem;
+      color: var(--blue-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .blog-date-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--pink);
+      display: inline-block;
+    }
+
+    .blog-title {
+      font-family: var(--font-hand);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .blog-excerpt {
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: var(--ink-light);
+      line-height: 1.7;
+    }
+
+    .blog-read-more {
+      display: inline-block;
+      margin-top: 10px;
+      font-family: var(--font-neat);
+      color: var(--pink-dark);
+      text-decoration: none;
+      border-bottom: 1px dashed var(--pink-dark);
+      transition: color 0.3s ease;
+    }
+    .blog-read-more:hover { color: var(--blue-dark); border-color: var(--blue-dark); }
+
+    .blog-mood {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      font-size: 1.5rem;
+    }
+
+    /* ===== ABOUT SECTION ===== */
+    .about-section {
+      padding: 40px 0 60px;
+    }
+
+    .about-card {
+      background: white;
+      padding: 35px 40px;
+      max-width: 650px;
+      margin: 0 auto;
+      position: relative;
+      box-shadow: 3px 3px 0 var(--shadow), 5px 5px 15px var(--shadow);
+      transform: rotate(0.5deg);
+    }
+
+    .about-card .tape { position: absolute; }
+    .about-card .tape-top-left { top: -10px; left: 20px; transform: rotate(-12deg); }
+    .about-card .tape-top-right { top: -10px; right: 20px; transform: rotate(8deg); }
+
+    .about-text {
+      font-family: var(--font-body);
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: var(--ink);
+    }
+
+    .about-text strong {
+      color: var(--pink-dark);
+    }
+
+    .about-facts {
+      list-style: none;
+      margin-top: 16px;
+      padding: 0;
+    }
+
+    .about-facts li {
+      padding: 4px 0;
+      font-family: var(--font-body);
+      font-size: 1rem;
+    }
+
+    .about-facts li::before {
+      content: '~ ';
+      color: var(--pink);
+      font-weight: bold;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      text-align: center;
+      padding: 30px 20px 40px;
+      border-top: 2px dashed var(--ink-light);
+      margin-top: 20px;
+    }
+
+    .footer-doodle {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+
+    footer p {
+      font-family: var(--font-neat);
+      font-size: 0.95rem;
+      color: var(--ink-light);
+    }
+
+    footer a {
+      color: var(--pink-dark);
+      text-decoration: none;
+    }
+
+    .footer-hearts {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      letter-spacing: 4px;
+    }
+
+    /* ===== SCROLL ANIMATIONS ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(25px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* ===== PAPER FLIP EFFECT ===== */
+    .flip-card {
+      perspective: 800px;
+    }
+
+    .flip-card-inner {
+      transition: transform 0.6s ease;
+      transform-style: preserve-3d;
+    }
+
+    .flip-card:hover .flip-card-inner {
+      transform: rotateY(8deg);
+    }
+
+    /* ===== WOBBLE ANIMATION ===== */
+    @keyframes wobble {
+      0%, 100% { transform: rotate(0deg); }
+      15% { transform: rotate(5deg); }
+      30% { transform: rotate(-4deg); }
+      45% { transform: rotate(3deg); }
+      60% { transform: rotate(-2deg); }
+      75% { transform: rotate(1deg); }
+    }
+
+    .wobble-hover:hover {
+      animation: wobble 0.6s ease;
+    }
+
+    /* ===== WRITING CURSOR BLINK ===== */
+    .cursor-blink::after {
+      content: '|';
+      animation: blink 1s step-end infinite;
+      color: var(--pink-dark);
+      font-weight: 300;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ===== BACK TO TOP ===== */
+    .back-to-top {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 46px;
+      height: 46px;
+      background: white;
+      border: 2px solid var(--ink);
+      border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      box-shadow: 2px 2px 8px var(--shadow);
+      z-index: 90;
+    }
+
+    .back-to-top.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .back-to-top:hover {
+      background: var(--yellow);
+      animation: wobble 0.5s ease;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .hero-notebook {
+        padding: 30px 20px 40px;
+        transform: rotate(0);
+      }
+      .hero-notebook::before {
+        display: none;
+      }
+      .blog-entry {
+        padding: 24px 20px 24px 20px;
+        background-image:
+          repeating-linear-gradient(
+            transparent,
+            transparent 31px,
+            var(--line-color) 31px,
+            var(--line-color) 32px
+          );
+      }
+      .blog-mood {
+        position: static;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .about-card {
+        transform: rotate(0);
+        padding: 28px 24px;
+      }
+      .projects-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .project-card {
+        min-height: 180px;
+        padding: 24px 16px 16px;
+      }
+    }
+
+    @media (max-width: 550px) {
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0; right: 0;
+        background: var(--paper);
+        flex-direction: column;
+        padding: 10px 20px 16px;
+        border-bottom: 2px dashed var(--ink-light);
+        gap: 4px;
+      }
+      .nav-links.open { display: flex; }
+      .nav-toggle { display: block; }
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+      .project-card:nth-child(n) {
+        transform: rotate(0);
+      }
+      .project-card:nth-child(n):hover {
+        transform: translateY(-4px) scale(1.01);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAV ===== -->
+  <nav>
+    <div class="container">
+      <a href="#" class="nav-logo wobble-hover">Cozy Coding Club</a>
+      <button class="nav-toggle" aria-label="Toggle menu" onclick="toggleNav()">&#9776;</button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#blog">Blog</a></li>
+        <li><a href="#about">About Me</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-doodles">
+      <span class="doodle">&#x2728;</span>
+      <span class="doodle">&#x1F4BB;</span>
+      <span class="doodle">&#x1F338;</span>
+      <span class="doodle">&#x2615;</span>
+      <span class="doodle">&#x1F3A8;</span>
+      <span class="doodle">&#x2B50;</span>
+      <span class="doodle">&#x1F49C;</span>
+    </div>
+    <div class="hero-notebook sketch-border">
+      <h1 class="hero-title">
+        Cozy Coding Club
+        <span class="underline-doodle"></span>
+      </h1>
+      <p class="hero-subtitle">
+        welcome to my coding diary!
+        <span class="doodle-star">&#x2B50;</span>
+        <span class="doodle-star">&#x2728;</span>
+        <span class="doodle-star">&#x1F31F;</span>
+      </p>
+      <p class="hero-subtitle" style="margin-top: 8px; font-size: 0.95rem; opacity: 0.8;">
+        i'm a 12-year-old coder who loves making things on the internet
+      </p>
+      <div class="hero-avatar wobble-hover">&#x1F431;</div>
+    </div>
+  </section>
+
+  <!-- ===== PROJECTS ===== -->
+  <section class="projects-section" id="projects">
+    <div class="container">
+      <h2 class="section-header reveal">
+        <span class="accent">&#x1F4CC;</span> My Projects
+      </h2>
+      <div class="projects-grid">
+
+        <div class="project-card sticky-yellow reveal reveal-delay-1 wobble-hover flip-card">
+          <div class="flip-card-inner">
+            <div class="project-icon">&#x1F522;</div>
+            <h3 class="project-title">Calculator</h3>
+            <p class="project-desc">A cute calculator with pastel buttons that actually works! My first real web app.</p>
+            <div class="project-tags">
+              <span class="tag">HTML</span>
+              <span class="tag">CSS</span>
+              <span class="tag">JavaScript</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card sticky-pink reveal reveal-delay-2 wobble-hover flip-card">
+          <div class="flip-card-inner">
+            <div class="project-icon">&#x1F3AE;</div>
+            <h3 class="project-title">Pixel Pet</h3>
+            <p class="project-desc">A virtual pet game where you feed and play with a tiny pixel cat!</p>
+            <div class="project-tags">
+              <span class="tag">JavaScript</span>
+              <span class="tag">Canvas</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card sticky-blue reveal reveal-delay-3 wobble-hover flip-card">
+          <div class="flip-card-inner">
+            <div class="project-icon">&#x1F3A8;</div>
+            <h3 class="project-title">Color Mixer</h3>
+            <p class="project-desc">Mix colors together and see what you get. It's like a digital paint palette!</p>
+            <div class="project-tags">
+              <span class="tag">HTML</span>
+              <span class="tag">CSS</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-card sticky-green reveal reveal-delay-4 wobble-hover flip-card">
+          <div class="flip-card-inner">
+            <div class="project-icon">&#x1F4DD;</div>
+            <h3 class="project-title">Story Writer</h3>
+            <p class="project-desc">A writing app with a cozy theme. Pick a genre, get prompts, and start writing!</p>
+            <div class="project-tags">
+              <span class="tag">JavaScript</span>
+              <span class="tag">LocalStorage</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BLOG ===== -->
+  <section class="blog-section" id="blog">
+    <div class="container">
+      <h2 class="section-header reveal">
+        <span class="accent">&#x1F4D6;</span> Blog / Thoughts
+      </h2>
+      <div class="blog-entries">
+
+        <article class="blog-entry reveal reveal-delay-1">
+          <span class="blog-mood">&#x1F389;</span>
+          <div class="blog-date">
+            <span class="blog-date-dot"></span>
+            March 28, 2026
+          </div>
+          <h3 class="blog-title">I finished my calculator!!!</h3>
+          <p class="blog-excerpt">
+            Okay so I've been working on this for like two weeks and it FINALLY works properly. The hardest part was getting the decimal point to not be weird. Also I made the buttons change color when you hover and I think it looks sooo cute. Next I want to add a history feature so you can see your past calculations!
+          </p>
+          <a href="#" class="blog-read-more">keep reading ~</a>
+        </article>
+
+        <article class="blog-entry reveal reveal-delay-2">
+          <span class="blog-mood">&#x1F914;</span>
+          <div class="blog-date">
+            <span class="blog-date-dot"></span>
+            March 20, 2026
+          </div>
+          <h3 class="blog-title">CSS is so confusing sometimes</h3>
+          <p class="blog-excerpt">
+            Why does flexbox do the opposite of what I think it's going to do lol. I spent an hour trying to center a div and turns out I needed both justify-content AND align-items. Writing it down so I never forget again: justify = main axis, align = cross axis!!
+          </p>
+          <a href="#" class="blog-read-more">keep reading ~</a>
+        </article>
+
+        <article class="blog-entry reveal reveal-delay-3">
+          <span class="blog-mood">&#x2728;</span>
+          <div class="blog-date">
+            <span class="blog-date-dot"></span>
+            March 10, 2026
+          </div>
+          <h3 class="blog-title">Starting my coding journey</h3>
+          <p class="blog-excerpt">
+            Hi!! This is my first ever blog post on my website. I started learning to code a few months ago and I'm already so obsessed. Right now I know HTML, CSS, and some JavaScript. My goal is to make a whole bunch of fun projects and share them here. Wish me luck!
+          </p>
+          <a href="#" class="blog-read-more">keep reading ~</a>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section class="about-section" id="about">
+    <div class="container">
+      <h2 class="section-header reveal">
+        <span class="accent">&#x1F33C;</span> About Me
+      </h2>
+      <div class="about-card sketch-border-alt reveal">
+        <div class="tape tape-top-left"></div>
+        <div class="tape tape-top-right"></div>
+        <p class="about-text">
+          Hey there! I'm a <strong>12-year-old coder</strong> and this is my little corner of the internet. I started learning to code because I wanted to make my own games, and now I'm totally hooked on web development too!
+        </p>
+        <p class="about-text" style="margin-top: 12px;">
+          When I'm not coding, I'm probably drawing, reading, or hanging out with my cat.
+        </p>
+        <ul class="about-facts">
+          <li>Currently learning: JavaScript & Python</li>
+          <li>Favorite color: pink (obviously)</li>
+          <li>Coding setup: my cozy desk with fairy lights</li>
+          <li>Dream project: making a multiplayer game!</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="footer-doodle">&#x1F338; &#x1F4BB; &#x1F338;</div>
+    <p>made with love by <a href="#">cozy coding club</a> &copy; 2026</p>
+    <p class="footer-hearts">&hearts; &hearts; &hearts;</p>
+  </footer>
+
+  <!-- ===== BACK TO TOP ===== -->
+  <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">&#x2191;</button>
+
+  <script>
+    // ===== Mobile nav toggle =====
+    function toggleNav() {
+      document.getElementById('navLinks').classList.toggle('open');
+    }
+
+    // Close nav when clicking a link
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('open');
+      });
+    });
+
+    // ===== Scroll reveal =====
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    revealEls.forEach(el => revealObserver.observe(el));
+
+    // ===== Back to top button =====
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 400) {
+        backToTop.classList.add('show');
+      } else {
+        backToTop.classList.remove('show');
+      }
+    });
+
+    // ===== Random tilt on project cards (subtle variation) =====
+    document.querySelectorAll('.project-card').forEach(card => {
+      const randomTilt = (Math.random() - 0.5) * 4;
+      const currentTransform = getComputedStyle(card).transform;
+      if (currentTransform === 'none' || window.innerWidth <= 550) return;
+      card.style.transform = `rotate(${randomTilt}deg)`;
+    });
+  </script>
+</body>
+</html>

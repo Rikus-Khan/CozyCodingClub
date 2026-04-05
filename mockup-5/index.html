@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cozy Coding Club</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Patrick+Hand&display=swap');
+
+  /* ── Reset & Base ─────────────────────────────────── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --green-dark:  #4a7c59;
+    --green-mid:   #7db88a;
+    --green-light: #c8e6c0;
+    --green-pale:  #e8f5e3;
+    --yellow-warm: #f5d76e;
+    --yellow-light:#fdf4d0;
+    --pink-soft:   #f2c6c6;
+    --pink-mid:    #e8a0a0;
+    --brown-dark:  #6b4f3a;
+    --brown-mid:   #a07d5a;
+    --brown-light: #d4b896;
+    --cream:       #faf7f0;
+    --white:       #fffdf8;
+    --text:        #3d3228;
+    --text-light:  #6b5e50;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Quicksand', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Animated background leaves / petals ──────────── */
+  .floating-things {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .leaf {
+    position: absolute;
+    font-size: 1.4rem;
+    opacity: 0;
+    animation: floatDown linear infinite;
+  }
+
+  @keyframes floatDown {
+    0%   { opacity: 0; transform: translateX(0) rotate(0deg); }
+    10%  { opacity: .7; }
+    90%  { opacity: .7; }
+    100% { opacity: 0; transform: translateX(80px) rotate(360deg); top: 105vh; }
+  }
+
+  /* ── Butterflies ──────────────────────────────────── */
+  .butterfly {
+    position: fixed;
+    font-size: 1.6rem;
+    z-index: 1;
+    pointer-events: none;
+    animation: flutter 6s ease-in-out infinite alternate;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.1));
+  }
+
+  @keyframes flutter {
+    0%   { transform: translate(0, 0)     scaleX(1)  rotate(-5deg); }
+    25%  { transform: translate(40px, -30px)  scaleX(.6) rotate(3deg); }
+    50%  { transform: translate(-20px, -60px) scaleX(1)  rotate(-3deg); }
+    75%  { transform: translate(30px, -20px)  scaleX(.6) rotate(5deg); }
+    100% { transform: translate(-10px, 10px)  scaleX(1)  rotate(-2deg); }
+  }
+
+  /* ── Navigation ───────────────────────────────────── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(250, 247, 240, .92);
+    backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--green-light);
+    padding: .75rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+  }
+
+  nav .logo {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.35rem;
+    color: var(--green-dark);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+
+  nav .logo .flower { font-size: 1.3rem; }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  nav a {
+    text-decoration: none;
+    color: var(--brown-dark);
+    font-size: .95rem;
+    position: relative;
+    transition: color .25s;
+  }
+
+  nav a:hover { color: var(--green-dark); }
+
+  nav a::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 0;
+    width: 0; height: 2px;
+    background: var(--green-mid);
+    border-radius: 2px;
+    transition: width .3s;
+  }
+
+  nav a:hover::after { width: 100%; }
+
+  .menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--brown-dark);
+  }
+
+  /* ── Hero ──────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    text-align: center;
+    padding: 5rem 1.5rem 4rem;
+    background:
+      linear-gradient(180deg, var(--green-pale) 0%, var(--cream) 100%);
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 60'%3E%3Cpath d='M0,30 Q120,0 240,30 T480,30 T720,30 T960,30 T1200,30 T1440,30 V60 H0 Z' fill='%23faf7f0'/%3E%3C/svg%3E")
+      no-repeat bottom / cover;
+  }
+
+  .vine-border {
+    font-size: 1.6rem;
+    letter-spacing: .3rem;
+    color: var(--green-mid);
+    margin-bottom: .5rem;
+    animation: sway 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes sway {
+    0%   { transform: rotate(-1deg); }
+    100% { transform: rotate(1deg); }
+  }
+
+  .hero h1 {
+    font-family: 'Patrick Hand', cursive;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    color: var(--green-dark);
+    margin-bottom: .3rem;
+    position: relative;
+    display: inline-block;
+  }
+
+  .hero h1 .flower-l,
+  .hero h1 .flower-r {
+    display: inline-block;
+    animation: bloom 3s ease-in-out infinite alternate;
+  }
+
+  .hero h1 .flower-r { animation-delay: .5s; }
+
+  @keyframes bloom {
+    0%   { transform: scale(.85) rotate(-8deg); }
+    100% { transform: scale(1.1)  rotate(8deg); }
+  }
+
+  .hero .tagline {
+    font-size: 1.15rem;
+    color: var(--text-light);
+    max-width: 520px;
+    margin: .5rem auto 0;
+    font-weight: 500;
+  }
+
+  .mushroom-row {
+    margin-top: 1.5rem;
+    font-size: 1.8rem;
+    letter-spacing: .8rem;
+    animation: sway 5s ease-in-out infinite alternate;
+  }
+
+  /* Growing flower animation */
+  .growing-flowers {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+  }
+
+  .grow-stem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: growUp 2s ease-out forwards;
+    transform-origin: bottom;
+  }
+
+  .grow-stem:nth-child(2) { animation-delay: .4s; }
+  .grow-stem:nth-child(3) { animation-delay: .8s; }
+  .grow-stem:nth-child(4) { animation-delay: 1.2s; }
+  .grow-stem:nth-child(5) { animation-delay: 1.6s; }
+
+  @keyframes growUp {
+    0%   { transform: scaleY(0); opacity: 0; }
+    60%  { transform: scaleY(1); opacity: 1; }
+    80%  { transform: scaleY(1.08); }
+    100% { transform: scaleY(1); opacity: 1; }
+  }
+
+  .grow-stem .bloom-top { font-size: 1.6rem; }
+  .grow-stem .stem-line {
+    width: 2px;
+    height: 30px;
+    background: var(--green-mid);
+    border-radius: 1px;
+  }
+
+  /* ── Section Shared ───────────────────────────────── */
+  section {
+    position: relative;
+    z-index: 2;
+    max-width: 1050px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+  }
+
+  .section-title {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 2rem;
+    color: var(--green-dark);
+    text-align: center;
+    margin-bottom: .3rem;
+  }
+
+  .section-subtitle {
+    text-align: center;
+    color: var(--text-light);
+    font-size: .95rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-divider {
+    text-align: center;
+    font-size: 1.2rem;
+    letter-spacing: .6rem;
+    color: var(--green-mid);
+    margin: .5rem 0 1.5rem;
+  }
+
+  /* ── Project Cards (seed-packet style) ────────────── */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .project-card {
+    background: var(--white);
+    border: 2px solid var(--green-light);
+    border-radius: 18px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform .3s, box-shadow .3s;
+    cursor: default;
+  }
+
+  .project-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(74, 124, 89, .15);
+  }
+
+  .project-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .project-card:nth-child(1)::before { background: var(--green-mid); }
+  .project-card:nth-child(2)::before { background: var(--yellow-warm); }
+  .project-card:nth-child(3)::before { background: var(--pink-mid); }
+  .project-card:nth-child(4)::before { background: var(--brown-light); }
+
+  .card-icon {
+    font-size: 2.2rem;
+    margin-bottom: .6rem;
+    display: block;
+  }
+
+  .card-badge {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: .2rem .6rem;
+    border-radius: 99px;
+    margin-bottom: .6rem;
+  }
+
+  .badge-web   { background: var(--green-pale);  color: var(--green-dark); }
+  .badge-game  { background: var(--yellow-light); color: #8a7020; }
+  .badge-tool  { background: #f0e0f0;             color: #7a4080; }
+  .badge-art   { background: var(--pink-soft);     color: #904040; }
+
+  .project-card h3 {
+    font-size: 1.15rem;
+    margin-bottom: .35rem;
+    color: var(--brown-dark);
+  }
+
+  .project-card p {
+    font-size: .88rem;
+    color: var(--text-light);
+    line-height: 1.55;
+  }
+
+  .card-tags {
+    margin-top: .75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+  }
+
+  .card-tags span {
+    font-size: .7rem;
+    background: var(--green-pale);
+    color: var(--green-dark);
+    padding: .15rem .5rem;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+
+  /* ── Blog / Journal ───────────────────────────────── */
+  .journal-bg {
+    background: var(--yellow-light);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    border: 2px dashed var(--brown-light);
+    position: relative;
+  }
+
+  .journal-bg::before {
+    content: '📖';
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    background: var(--cream);
+    padding: 0 .8rem;
+  }
+
+  .blog-post {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem;
+    margin-bottom: 1.2rem;
+    border-left: 4px solid var(--green-mid);
+    position: relative;
+    transition: transform .25s;
+  }
+
+  .blog-post:hover {
+    transform: translateX(4px);
+  }
+
+  .blog-post:last-child { margin-bottom: 0; }
+
+  .blog-date {
+    font-size: .75rem;
+    color: var(--brown-mid);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: .25rem;
+  }
+
+  .blog-post h3 {
+    font-size: 1.05rem;
+    color: var(--brown-dark);
+    margin-bottom: .3rem;
+  }
+
+  .blog-post p {
+    font-size: .88rem;
+    color: var(--text-light);
+    line-height: 1.6;
+  }
+
+  .blog-post .post-mood {
+    margin-top: .5rem;
+    font-size: .8rem;
+    color: var(--green-dark);
+    font-style: italic;
+  }
+
+  /* ── About Section ────────────────────────────────── */
+  .about-box {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    background: var(--white);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 2px solid var(--green-light);
+  }
+
+  .about-avatar {
+    flex-shrink: 0;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background:
+      linear-gradient(135deg, var(--green-light), var(--yellow-warm));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    border: 3px solid var(--white);
+    box-shadow: 0 4px 16px rgba(74, 124, 89, .2);
+  }
+
+  .about-text h3 {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.4rem;
+    color: var(--green-dark);
+    margin-bottom: .3rem;
+  }
+
+  .about-text p {
+    font-size: .92rem;
+    color: var(--text-light);
+    line-height: 1.65;
+  }
+
+  .about-text .fun-facts {
+    margin-top: .8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+
+  .fun-facts span {
+    font-size: .78rem;
+    background: var(--green-pale);
+    padding: .25rem .65rem;
+    border-radius: 99px;
+    color: var(--green-dark);
+    font-weight: 600;
+  }
+
+  /* ── Footer ───────────────────────────────────────── */
+  footer {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    background: var(--green-pale);
+    color: var(--green-dark);
+    font-size: .85rem;
+    border-top: 2px solid var(--green-light);
+    position: relative;
+    z-index: 2;
+  }
+
+  footer .footer-art {
+    font-size: 1.3rem;
+    letter-spacing: .5rem;
+    margin-bottom: .5rem;
+  }
+
+  footer a {
+    color: var(--green-dark);
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-underline-offset: 3px;
+  }
+
+  /* ── Responsive ───────────────────────────────────── */
+  @media (max-width: 700px) {
+    nav ul {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      background: rgba(250, 247, 240, .97);
+      padding: 1rem 2rem;
+      gap: .8rem;
+      border-bottom: 2px solid var(--green-light);
+    }
+
+    nav ul.open { display: flex; }
+
+    .menu-btn { display: block; }
+
+    .about-box {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .about-text .fun-facts { justify-content: center; }
+
+    .hero { padding: 3.5rem 1.2rem 3rem; }
+
+    .journal-bg { padding: 2rem 1.2rem; }
+
+    .growing-flowers { gap: 1rem; }
+  }
+
+  /* ── Scroll reveal ────────────────────────────────── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating leaves / petals -->
+<div class="floating-things" id="floatingThings"></div>
+
+<!-- Butterflies -->
+<div class="butterfly" id="b1" style="top:14%;left:8%;">🦋</div>
+<div class="butterfly" id="b2" style="top:35%;right:6%;animation-delay:-2s;font-size:1.3rem;">🦋</div>
+<div class="butterfly" id="b3" style="top:62%;left:12%;animation-delay:-4s;font-size:1.1rem;">🦋</div>
+
+<!-- Navigation -->
+<nav>
+  <div class="logo">
+    <span class="flower">🌸</span> Cozy Coding Club
+  </div>
+  <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+  <ul id="navLinks">
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#blog">Blog</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="vine-border">🌿 ✿ 🌿 ✿ 🌿 ✿ 🌿</div>
+  <h1>
+    <span class="flower-l">🌷</span>
+    Cozy Coding Club
+    <span class="flower-r">🌻</span>
+  </h1>
+  <p class="tagline">
+    A little corner of the internet where code meets cottagecore.
+    Building things, learning stuff, having fun!
+  </p>
+  <div class="mushroom-row">🍄 🌱 🍄 🌱 🍄</div>
+  <div class="growing-flowers">
+    <div class="grow-stem"><span class="bloom-top">🌸</span><span class="stem-line"></span></div>
+    <div class="grow-stem"><span class="bloom-top">🌼</span><span class="stem-line"></span></div>
+    <div class="grow-stem"><span class="bloom-top">🌺</span><span class="stem-line"></span></div>
+    <div class="grow-stem"><span class="bloom-top">💐</span><span class="stem-line"></span></div>
+    <div class="grow-stem"><span class="bloom-top">🌻</span><span class="stem-line"></span></div>
+  </div>
+</header>
+
+<!-- Projects -->
+<section id="projects">
+  <h2 class="section-title">🌱 My Projects</h2>
+  <div class="section-divider">~ ~ ~ ~ ~</div>
+  <p class="section-subtitle">Things I've built (and things I'm building!)</p>
+
+  <div class="projects-grid">
+    <div class="project-card reveal">
+      <span class="card-icon">🔢</span>
+      <span class="card-badge badge-tool">Tool</span>
+      <h3>Calculator</h3>
+      <p>A pretty calculator web app with a pastel theme, keyboard support, and history! My first real JavaScript project.</p>
+      <div class="card-tags">
+        <span>HTML</span><span>CSS</span><span>JavaScript</span>
+      </div>
+    </div>
+
+    <div class="project-card reveal">
+      <span class="card-icon">🐾</span>
+      <span class="card-badge badge-game">Game</span>
+      <h3>Pet Garden</h3>
+      <p>A virtual pet game where you take care of cute animals in a garden. Feed them, play with them, watch them grow!</p>
+      <div class="card-tags">
+        <span>JavaScript</span><span>Canvas</span>
+      </div>
+    </div>
+
+    <div class="project-card reveal">
+      <span class="card-icon">🎨</span>
+      <span class="card-badge badge-art">Creative</span>
+      <h3>Pixel Art Maker</h3>
+      <p>Draw tiny pixel art in the browser and export it as an image. Includes a cute color palette picker!</p>
+      <div class="card-tags">
+        <span>HTML</span><span>Canvas</span><span>CSS</span>
+      </div>
+    </div>
+
+    <div class="project-card reveal">
+      <span class="card-icon">📝</span>
+      <span class="card-badge badge-web">Web App</span>
+      <h3>Cozy To-Do List</h3>
+      <p>A nature-themed to-do app with cute checkboxes, categories, and satisfying completion animations.</p>
+      <div class="card-tags">
+        <span>React</span><span>CSS</span><span>LocalStorage</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Blog -->
+<section id="blog">
+  <h2 class="section-title">📓 Blog / Thoughts</h2>
+  <div class="section-divider">~ ~ ~ ~ ~</div>
+  <p class="section-subtitle">My coding journal &mdash; little notes from the garden</p>
+
+  <div class="journal-bg reveal">
+    <article class="blog-post">
+      <div class="blog-date">🗓 March 28, 2026</div>
+      <h3>I Finally Understand CSS Grid!!</h3>
+      <p>
+        Okay so CSS Grid used to scare me SO much but today it finally clicked.
+        The trick was thinking of it like a garden plot &mdash; you lay out rows and columns
+        like planting beds and then put things in them. I even made a little grid visualizer
+        to help me learn. Maybe I'll share it as a project soon!
+      </p>
+      <div class="post-mood">mood: 🌟 excited & proud</div>
+    </article>
+
+    <article class="blog-post">
+      <div class="blog-date">🗓 March 20, 2026</div>
+      <h3>My Calculator Project Is Done!</h3>
+      <p>
+        After two weeks of work, my calculator app is finally finished! It was harder
+        than I thought &mdash; especially handling the order of operations and making the
+        buttons feel clicky and satisfying. I learned a lot about event listeners and
+        how to organize my code better.
+      </p>
+      <div class="post-mood">mood: 🎉 accomplished</div>
+    </article>
+
+    <article class="blog-post">
+      <div class="blog-date">🗓 March 12, 2026</div>
+      <h3>Why I Love Coding</h3>
+      <p>
+        Sometimes people ask me why I like coding so much and honestly? It's like
+        building with invisible LEGOs. You start with nothing and then suddenly
+        there's this thing on the screen that YOU made and it WORKS and it's the
+        best feeling ever. Also the debugging is like solving puzzles which is fun
+        (most of the time lol).
+      </p>
+      <div class="post-mood">mood: 🥰 cozy & reflective</div>
+    </article>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about">
+  <h2 class="section-title">🌻 About Me</h2>
+  <div class="section-divider">~ ~ ~ ~ ~</div>
+
+  <div class="about-box reveal">
+    <div class="about-avatar">🧑‍💻</div>
+    <div class="about-text">
+      <h3>Hi, I'm the Cozy Coder!</h3>
+      <p>
+        I'm 12 and I love building things on the internet! I started learning HTML
+        when I was 10 and now I'm exploring JavaScript, CSS animations, and even
+        a little bit of Python. When I'm not coding, I'm probably reading, drawing,
+        or hanging out with my cat. This site is my little digital garden where I
+        share what I'm making and learning. Welcome! 🌿
+      </p>
+      <div class="fun-facts">
+        <span>🐱 Cat person</span>
+        <span>🎮 Indie games</span>
+        <span>📚 Fantasy books</span>
+        <span>🌿 Plant lover</span>
+        <span>🎨 Pixel art</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-art">🌸 🍃 🍄 🌼 🍃 🌸</div>
+  <p>Made with 💚 by Cozy Coding Club &copy; 2026</p>
+  <p style="margin-top:.3rem;">
+    <a href="#">cozycodingclub.com</a>
+  </p>
+</footer>
+
+<script>
+  // ── Mobile menu toggle ──
+  const menuBtn = document.getElementById('menuBtn');
+  const navLinks = document.getElementById('navLinks');
+  menuBtn.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+    menuBtn.textContent = navLinks.classList.contains('open') ? '✕' : '☰';
+  });
+
+  // Close menu on link click
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      menuBtn.textContent = '☰';
+    });
+  });
+
+  // ── Floating leaves / petals ──
+  const floatingContainer = document.getElementById('floatingThings');
+  const items = ['🍃', '🍂', '🌸', '✿', '🍃', '🌿', '🌸'];
+
+  function createLeaf() {
+    const el = document.createElement('span');
+    el.className = 'leaf';
+    el.textContent = items[Math.floor(Math.random() * items.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = '-30px';
+    el.style.fontSize = (1 + Math.random() * 1) + 'rem';
+    const dur = 8 + Math.random() * 10;
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay = Math.random() * 2 + 's';
+    floatingContainer.appendChild(el);
+    setTimeout(() => el.remove(), (dur + 3) * 1000);
+  }
+
+  // Create leaves at intervals
+  setInterval(createLeaf, 1800);
+  // Initial batch
+  for (let i = 0; i < 6; i++) setTimeout(createLeaf, i * 400);
+
+  // ── Butterfly drift ──
+  // Add gentle random position drift to butterflies
+  const butterflies = document.querySelectorAll('.butterfly');
+  function driftButterfly(el) {
+    const baseTop = parseFloat(el.style.top) || 20;
+    const baseLeft = parseFloat(el.style.left) || parseFloat(el.style.right) || 10;
+    const isRight = el.style.right !== '';
+
+    setInterval(() => {
+      const offY = (Math.random() - 0.5) * 6;
+      const offX = (Math.random() - 0.5) * 4;
+      el.style.top = Math.max(5, Math.min(80, baseTop + offY)) + '%';
+      if (isRight) {
+        el.style.right = Math.max(3, Math.min(20, baseLeft + offX)) + '%';
+      } else {
+        el.style.left = Math.max(3, Math.min(20, baseLeft + offX)) + '%';
+      }
+    }, 4000);
+  }
+  butterflies.forEach(driftButterfly);
+
+  // ── Scroll reveal ──
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15 });
+
+  revealEls.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

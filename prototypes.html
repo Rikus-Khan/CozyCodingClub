@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Prototypes - Cozy Coding Club</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0a1a;
+            color: #e0d0f0;
+            font-family: 'Nunito', sans-serif;
+            padding: 2rem;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 50%, rgba(120, 60, 150, 0.12) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 50%, rgba(200, 100, 150, 0.08) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: rgba(200, 160, 230, 0.6);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: rgba(220, 180, 250, 1);
+        }
+
+        .page-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #e8c4f0;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 20px rgba(200, 140, 220, 0.3);
+        }
+
+        .page-subtitle {
+            text-align: center;
+            color: rgba(200, 170, 220, 0.6);
+            font-size: 1rem;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card {
+            background: rgba(30, 20, 50, 0.8);
+            border: 1px solid rgba(200, 140, 220, 0.15);
+            border-radius: 16px;
+            padding: 2rem;
+            text-decoration: none;
+            color: #e0d0f0;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 16px 16px 0 0;
+            opacity: 0.8;
+        }
+
+        .card:nth-child(1)::before { background: linear-gradient(90deg, #f0a0c0, #c0a0f0); }
+        .card:nth-child(2)::before { background: linear-gradient(90deg, #ff6b9d, #00f0ff); }
+        .card:nth-child(3)::before { background: linear-gradient(90deg, #f5d0a0, #e0b080); }
+        .card:nth-child(4)::before { background: linear-gradient(90deg, #8060c0, #4040a0); }
+        .card:nth-child(5)::before { background: linear-gradient(90deg, #80c060, #c0d040); }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(200, 140, 220, 0.4);
+            box-shadow: 0 20px 60px rgba(150, 80, 200, 0.15);
+        }
+
+        .card-number {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(200, 160, 230, 0.4);
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.6rem;
+            margin-bottom: 0.5rem;
+            color: #e8c4f0;
+        }
+
+        .card-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-desc {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: rgba(200, 170, 220, 0.7);
+            margin-bottom: 1rem;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            background: rgba(200, 140, 220, 0.1);
+            color: rgba(200, 160, 230, 0.6);
+            border: 1px solid rgba(200, 140, 220, 0.15);
+        }
+
+        .card-arrow {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            font-size: 1.2rem;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            color: rgba(200, 160, 230, 0.5);
+        }
+
+        .card:hover .card-arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        @media (max-width: 700px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            body {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&larr; back to main</a>
+    <h1 class="page-title">Design Prototypes</h1>
+    <p class="page-subtitle">Click a card to preview each design concept</p>
+
+    <div class="grid">
+        <a href="mockup-1/index.html" class="card">
+            <span class="card-emoji">🌸</span>
+            <div class="card-number">Mockup 01</div>
+            <div class="card-title">Cozy Pastel</div>
+            <p class="card-desc">Soft pinks, lavenders, and warm tones. Sparkle mouse trail, bouncing emojis, and a gentle floating aesthetic.</p>
+            <div class="card-tags">
+                <span class="tag">pastel</span>
+                <span class="tag">sparkles</span>
+                <span class="tag">warm</span>
+            </div>
+            <span class="card-arrow">&rarr;</span>
+        </a>
+
+        <a href="mockup-2/index.html" class="card">
+            <span class="card-emoji">👾</span>
+            <div class="card-number">Mockup 02</div>
+            <div class="card-title">Retro Pixel Art</div>
+            <p class="card-desc">Dark background with neon accents, pixel fonts, CRT scanlines, and a typing effect. 8-bit vibes all the way.</p>
+            <div class="card-tags">
+                <span class="tag">retro</span>
+                <span class="tag">neon</span>
+                <span class="tag">pixel</span>
+            </div>
+            <span class="card-arrow">&rarr;</span>
+        </a>
+
+        <a href="mockup-3/index.html" class="card">
+            <span class="card-emoji">📓</span>
+            <div class="card-number">Mockup 03</div>
+            <div class="card-title">Notebook Journal</div>
+            <p class="card-desc">Handwriting fonts, lined paper, sticky-note project cards, washi tape, and doodle decorations. Like a coding diary.</p>
+            <div class="card-tags">
+                <span class="tag">handwritten</span>
+                <span class="tag">cozy</span>
+                <span class="tag">doodles</span>
+            </div>
+            <span class="card-arrow">&rarr;</span>
+        </a>
+
+        <a href="mockup-4/index.html" class="card">
+            <span class="card-emoji">🌌</span>
+            <div class="card-number">Mockup 04</div>
+            <div class="card-title">Space Galaxy</div>
+            <p class="card-desc">Deep purple nebula, twinkling starfield, shooting stars, and floating planets. Cosmic coding vibes.</p>
+            <div class="card-tags">
+                <span class="tag">space</span>
+                <span class="tag">stars</span>
+                <span class="tag">glow</span>
+            </div>
+            <span class="card-arrow">&rarr;</span>
+        </a>
+
+        <a href="mockup-5/index.html" class="card">
+            <span class="card-emoji">🦋</span>
+            <div class="card-number">Mockup 05</div>
+            <div class="card-title">Garden Cottagecore</div>
+            <p class="card-desc">Soft greens, floating leaves, fluttering butterflies, growing flowers, and cozy woodland charm.</p>
+            <div class="card-tags">
+                <span class="tag">nature</span>
+                <span class="tag">butterflies</span>
+                <span class="tag">cozy</span>
+            </div>
+            <span class="card-arrow">&rarr;</span>
+        </a>
+    </div>
+</body>
+</html>
