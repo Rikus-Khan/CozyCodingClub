@@ -12,5 +12,6 @@ Thumbs.db
 # Parent mode
 .parent-mode
 
-# Claude Code project instructions (contains private info)
+# Claude Code project instructions and hooks (contain private info)
 CLAUDE.md
+.claude/hooks/
