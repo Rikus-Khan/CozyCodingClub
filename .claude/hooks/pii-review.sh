@@ -2,6 +2,11 @@
 # PII Safety Review - Blocks commits/pushes containing personal information
 # Protects Cozy Coder from accidentally publishing private info
 
+# Parent override: set COZY_PARENT env var to bypass
+if [ "$COZY_PARENT" = "RikusApproved2026" ]; then
+  exit 0
+fi
+
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
