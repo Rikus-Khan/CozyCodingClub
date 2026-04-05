@@ -1,7 +1,7 @@
 # Sunset Calculator
 
 **Status:** In Progress  
-**Author:** Cozy Coder & Claude  
+**Author:** Cozy Coding Club  
 **Date:** 2026-04-02
 
 ## Goals
