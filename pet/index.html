@@ -2450,7 +2450,7 @@ document.getElementById('btn-feed').addEventListener('click', function() {
   const btn = this;
   if (btn.disabled) return;
 
-  pet.hunger = Math.min(100, pet.hunger + 20);
+  pet.hunger = 100;
   pet.xp += 2;
   checkLevelUp(pet);
   renderPets();
@@ -2469,7 +2469,7 @@ document.getElementById('btn-play').addEventListener('click', function() {
   const btn = this;
   if (btn.disabled) return;
 
-  pet.happiness = Math.min(100, pet.happiness + 15);
+  pet.happiness = 100;
   pet.xp += 2;
   checkLevelUp(pet);
   renderPets();
@@ -2488,7 +2488,7 @@ document.getElementById('btn-sleep').addEventListener('click', function() {
   const btn = this;
   if (btn.disabled) return;
 
-  pet.energy = Math.min(100, pet.energy + 25);
+  pet.energy = 100;
   renderPets();
 
   // 5 second cooldown (pet sleeps for 5s)
