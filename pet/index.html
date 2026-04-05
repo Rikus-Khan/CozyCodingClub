@@ -290,6 +290,41 @@
   }
   .back-link:hover { color: var(--pink); }
 
+  /* ── Pet switcher bar (top center) ───────────────────── */
+  .pet-switcher {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 50;
+  }
+
+  .pet-switch-btn {
+    font-family: var(--pixel-font);
+    font-size: 8px;
+    padding: 6px 12px;
+    border: 2px solid var(--card);
+    background: rgba(0,0,0,0.4);
+    color: var(--muted);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .pet-switch-btn:hover {
+    border-color: var(--cyan);
+    color: var(--text);
+  }
+
+  .pet-switch-btn.active {
+    border-color: var(--pink);
+    color: var(--pink);
+    background: rgba(255, 110, 199, 0.15);
+    box-shadow: 0 0 8px rgba(255, 110, 199, 0.3);
+  }
+
   /* ── Pause button top right ─────────────────────────── */
   .pause-btn {
     position: absolute;
@@ -963,6 +998,15 @@
     image-rendering: pixelated;
   }
 
+  .pet.selected .pet-label {
+    color: var(--pink);
+    text-shadow: 0 0 8px rgba(255, 110, 199, 0.6);
+  }
+
+  .pet.selected .pet-sprite {
+    filter: drop-shadow(0 0 6px rgba(255, 110, 199, 0.5));
+  }
+
   /* Gentle bounce — on the .pet container so it doesn't override sprite scale */
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
@@ -1224,6 +1268,7 @@
 <div id="game-screen" class="hidden">
   <a href="/" class="back-link">&lt; back</a>
 
+  <div class="pet-switcher" id="pet-switcher"></div>
   <button class="pause-btn" id="pause-btn">PAUSE</button>
 
   <div class="pet-area" id="pet-area">
@@ -2178,6 +2223,24 @@ document.getElementById('name-input').addEventListener('keydown', function(ev) {
 // GAME RENDERING
 // ═══════════════════════════════════════════════════════
 
+function renderPetSwitcher() {
+  const bar = document.getElementById('pet-switcher');
+  bar.innerHTML = '';
+  gameState.pets.forEach(pet => {
+    if (!pet.alive) return;
+    const btn = document.createElement('button');
+    btn.className = 'pet-switch-btn' + (pet.id === gameState.selectedPetId ? ' active' : '');
+    btn.textContent = pet.name;
+    btn.addEventListener('click', function(ev) {
+      ev.stopPropagation();
+      gameState.selectedPetId = pet.id;
+      renderPetSwitcher();
+      openSidePanel(pet);
+    });
+    bar.appendChild(btn);
+  });
+}
+
 function renderPets() {
   const area = document.getElementById('pet-area');
   // Only remove pet elements, not the backyard decorations!
@@ -2187,7 +2250,7 @@ function renderPets() {
     if (!pet.alive) return;
 
     const petEl = document.createElement('div');
-    petEl.className = 'pet';
+    petEl.className = 'pet' + (pet.id === gameState.selectedPetId ? ' selected' : '');
     petEl.style.left = pet.x + '%';
     petEl.style.top = pet.y + '%';
 
@@ -2228,6 +2291,8 @@ function renderPets() {
 
     area.appendChild(petEl);
   });
+
+  renderPetSwitcher();
 }
 
 // ── Side panel ────────────────────────────────────────
@@ -2553,7 +2618,7 @@ document.addEventListener('touchmove', function(ev) {
   mouseY = Math.max(5, Math.min(85, mouseY));
 });
 
-// Move pets toward the mouse/finger smoothly every frame
+// Move pets every frame
 function movePetsTowardMouse() {
   if (gameState.paused) {
     requestAnimationFrame(movePetsTowardMouse);
@@ -2563,18 +2628,31 @@ function movePetsTowardMouse() {
   gameState.pets.forEach(pet => {
     if (!pet.alive) return;
 
-    // How fast the pet moves (smaller = slower, more chill)
-    const speed = 0.015;
-
-    // Move toward the mouse position
-    const dx = mouseX - pet.x;
-    const dy = mouseY - pet.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    // Only move if not close — stop when within 10% of the mouse
-    if (dist > 10) {
-      pet.x += dx * speed;
-      pet.y += dy * speed;
+    // Only follow mouse when walking the selected pet
+    if (gameState.isWalking && pet.id === gameState.selectedPetId) {
+      const speed = 0.02;
+      const dx = mouseX - pet.x;
+      const dy = mouseY - pet.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 8) {
+        pet.x += dx * speed;
+        pet.y += dy * speed;
+      }
+    } else {
+      // Idle wandering — pets slowly drift around on their own
+      if (!pet._idleTimer || Date.now() > pet._idleTimer) {
+        pet._idleTargetX = pet.x + (Math.random() - 0.5) * 10;
+        pet._idleTargetY = pet.y + (Math.random() - 0.5) * 6;
+        // Keep in bounds
+        pet._idleTargetX = Math.max(5, Math.min(90, pet._idleTargetX));
+        pet._idleTargetY = Math.max(40, Math.min(85, pet._idleTargetY));
+        // Pick a new target every 3-6 seconds
+        pet._idleTimer = Date.now() + 3000 + Math.random() * 3000;
+      }
+      const dx = (pet._idleTargetX || pet.x) - pet.x;
+      const dy = (pet._idleTargetY || pet.y) - pet.y;
+      pet.x += dx * 0.005;
+      pet.y += dy * 0.005;
     }
   });
 
