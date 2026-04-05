@@ -1,0 +1,13 @@
+# Local Claude Code settings (may contain parent passphrase)
+.claude/settings.local.json
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Parent mode
+.parent-mode

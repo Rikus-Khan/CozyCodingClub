@@ -2,8 +2,8 @@
 # PII Safety Review - Blocks commits/pushes containing personal information
 # Protects Cozy Coder from accidentally publishing private info
 
-# Parent override: set COZY_PARENT env var to bypass
-if [ "$COZY_PARENT" = "RikusApproved2026" ]; then
+# Parent override: .parent-mode file bypasses checks
+if [ -f "$(git rev-parse --show-toplevel)/.parent-mode" ]; then
   exit 0
 fi
 
