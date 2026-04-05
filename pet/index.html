@@ -373,7 +373,7 @@
     right: 0;
     top: 38%;
     height: 60px;
-    z-index: 40;
+    z-index: 2;
     /* Repeating fence pickets */
     background:
       /* Horizontal rail top */
@@ -2390,9 +2390,9 @@ function startGameLoop() {
 
       // Stat decay (check every tick — decay rates are per 30s/45s)
       // We decay 1 point every second proportionally
-      pet.hunger = Math.max(0, pet.hunger - (2 / 120));     // -2 per 2 minutes
-      pet.happiness = Math.max(0, pet.happiness - (1 / 120)); // -1 per 2 minutes
-      pet.energy = Math.max(0, pet.energy - (1 / 180));      // -1 per 3 minutes
+      pet.hunger = Math.max(0, pet.hunger - (2 / 600));     // -2 per 10 minutes
+      pet.happiness = Math.max(0, pet.happiness - (1 / 600)); // -1 per 10 minutes
+      pet.energy = Math.max(0, pet.energy - (1 / 900));      // -1 per 15 minutes
 
       // Faint check
       if (pet.hunger <= 0 || pet.happiness <= 0 || pet.energy <= 0) {
@@ -2645,7 +2645,7 @@ const CLIMBERS = ['cat', 'fox', 'owl'];
 const TREE_POSITIONS = [3, 15, 35, 48, 58, 75, 92];
 
 // Grass bounds (percent) — pets stay on the grass, not in the sky
-const GRASS_TOP = 48;  // top of grass area
+const GRASS_TOP = 55;  // top of grass area — below the fence
 const GRASS_BOTTOM = 88;
 const GRASS_LEFT = 3;
 const GRASS_RIGHT = 97;
@@ -2670,16 +2670,16 @@ function initPetAI(pet) {
 function updatePetAI(pet) {
   const now = Date.now();
 
-  // If walking with owner, follow mouse
+  // If walking with owner, follow mouse smoothly
   if (gameState.isWalking && pet.id === gameState.selectedPetId) {
     pet._state = 'walking';
-    pet._targetX = mouseX;
-    pet._targetY = mouseY;
-    const speed = 0.04;
-    pet._vx += (pet._targetX - pet.x) * speed - pet._vx * 0.1;
-    pet._vy += (pet._targetY - pet.y) * speed - pet._vy * 0.1;
-    pet.x += pet._vx;
-    pet.y += pet._vy;
+    const dx = mouseX - pet.x;
+    const dy = mouseY - pet.y;
+    // Simple smooth lerp — move 2% of the remaining distance each frame
+    pet.x += dx * 0.02;
+    pet.y += dy * 0.02;
+    pet._vx = dx * 0.02;
+    pet._vy = dy * 0.02;
     clampToGrass(pet);
     return;
   }
