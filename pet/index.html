@@ -999,6 +999,28 @@
     image-rendering: pixelated;
   }
 
+  /* Sleeping Zzz animation */
+  .pet-zzz {
+    position: absolute;
+    top: -10px;
+    right: -20px;
+    font-family: var(--pixel-font);
+    font-size: 14px;
+    color: var(--cyan);
+    text-shadow: 0 0 8px rgba(0, 255, 245, 0.5);
+    animation: zzz-float 2s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes zzz-float {
+    0%   { opacity: 0.3; transform: translateY(0) scale(0.8); }
+    50%  { opacity: 1;   transform: translateY(-15px) scale(1.1); }
+    100% { opacity: 0.3; transform: translateY(-30px) scale(0.8); }
+  }
+
+  /* Sleeping pet doesn't bounce */
+  .pet.sleeping { animation: none; }
+
   .pet.selected .pet-label {
     color: var(--pink);
     text-shadow: 0 0 8px rgba(255, 110, 199, 0.6);
@@ -1477,13 +1499,16 @@ const ANIMALS = {
 //
 // b = base color, d = dark color, l = light color, e = eye color, n = nose color
 
-function getSprite(animalType, color, stage) {
+function getSprite(animalType, color, stage, sleeping) {
   const b = color.base;
   const d = color.dark;
   const l = color.light;
-  const e = '#222';     // eyes are always dark
   const n = '#ffaaaa';  // nose is always pink
-  const w = '#ffffff';  // white of eye
+
+  // When sleeping, eyes are closed: white part becomes base color,
+  // dark pupil becomes a thin line (dark color) = looks like closed eyes
+  const e = sleeping ? d : '#222';
+  const w = sleeping ? b : '#ffffff';
 
   // Returns { boxShadow, scale, width (in pixel units), height }
   if (animalType === 'cat') return getCatSprite(b, d, l, e, n, w, stage);
@@ -2039,8 +2064,8 @@ function getWolfSprite(b, d, l, e, n, w, stage) {
 }
 
 // ── Apply a sprite to a DOM element ───────────────────
-function applySprite(el, animalType, color, stage) {
-  const sprite = getSprite(animalType, color, stage);
+function applySprite(el, animalType, color, stage, sleeping) {
+  const sprite = getSprite(animalType, color, stage, sleeping);
   el.style.width = '1px';
   el.style.height = '1px';
   el.style.background = 'transparent';
@@ -2290,14 +2315,24 @@ function renderPets() {
       bars.appendChild(bg);
     });
 
-    // Sprite
+    // Sprite — use sleeping sprite if pet is asleep
+    const isSleeping = pet._state === 'sleeping';
     const sprite = document.createElement('div');
     sprite.className = 'pet-sprite';
-    applySprite(sprite, pet.type, pet.color, pet.stage);
+    applySprite(sprite, pet.type, pet.color, pet.stage, isSleeping);
 
     petEl.appendChild(label);
     petEl.appendChild(bars);
     petEl.appendChild(sprite);
+
+    // Add Zzz if sleeping
+    if (isSleeping) {
+      petEl.classList.add('sleeping');
+      const zzz = document.createElement('div');
+      zzz.className = 'pet-zzz';
+      zzz.textContent = 'Z z z';
+      petEl.appendChild(zzz);
+    }
 
     // Click to select this pet
     petEl.addEventListener('click', function(ev) {
@@ -2487,14 +2522,20 @@ document.getElementById('btn-sleep').addEventListener('click', function() {
 
   const btn = this;
   if (btn.disabled) return;
+  if (pet._state === 'sleeping') return; // already sleeping
 
-  pet.energy = 100;
+  // Put the pet to sleep for 60 seconds
+  pet._state = 'sleeping';
+  pet._sleepUntil = Date.now() + 60 * 1000;
+  // Pet finds a comfortable spot (stays where it is)
+  pet._vx = 0;
+  pet._vy = 0;
   renderPets();
 
-  // 5 second cooldown (pet sleeps for 5s)
+  // Button disabled for 60 seconds
   btn.disabled = true;
-  animateCooldown('cd-sleep', 5000);
-  setTimeout(function() { btn.disabled = false; }, 5000);
+  animateCooldown('cd-sleep', 60 * 1000);
+  setTimeout(function() { btn.disabled = false; }, 60 * 1000);
 });
 
 // Walk button
@@ -2669,6 +2710,21 @@ function initPetAI(pet) {
 
 function updatePetAI(pet) {
   const now = Date.now();
+
+  // If sleeping, don't move — gradually restore energy
+  if (pet._state === 'sleeping') {
+    pet._vx = 0;
+    pet._vy = 0;
+    // Restore energy over 60 seconds (100% / 60fps / 60s ≈ 0.028 per frame)
+    pet.energy = Math.min(100, pet.energy + (100 / (60 * 60)));
+    // Wake up when time is up
+    if (now >= pet._sleepUntil) {
+      pet._state = 'idle';
+      pet._stateTimer = now + 2000;
+      pet.energy = 100; // fully rested
+    }
+    return;
+  }
 
   // If walking with owner, follow mouse smoothly
   if (gameState.isWalking && pet.id === gameState.selectedPetId) {
