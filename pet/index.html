@@ -616,7 +616,7 @@
   /* ── Trees ─────────────────────────────────────────── */
   .tree {
     position: absolute;
-    z-index: 1;
+    z-index: 5;
   }
 
   /* Tree trunk */
@@ -2646,9 +2646,9 @@ const TREE_POSITIONS = [3, 15, 35, 48, 58, 75, 92];
 
 // Grass bounds (percent) — pets stay on the grass, not in the sky
 const GRASS_TOP = 55;  // top of grass area — below the fence
-const GRASS_BOTTOM = 88;
-const GRASS_LEFT = 3;
-const GRASS_RIGHT = 97;
+const GRASS_BOTTOM = 82;
+const GRASS_LEFT = 5;
+const GRASS_RIGHT = 88;
 
 function clampToGrass(pet) {
   // Climbers can go higher when climbing
