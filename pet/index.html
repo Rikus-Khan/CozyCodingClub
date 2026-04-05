@@ -1,0 +1,2241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Pet — Cozy Coding Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Theme ─────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0f0e17;
+    --surface:   #1a1a2e;
+    --card:      #16213e;
+    --pink:      #ff6ec7;
+    --cyan:      #00fff5;
+    --yellow:    #ffe66d;
+    --green:     #7cff6b;
+    --purple:    #c77dff;
+    --text:      #e8e8e8;
+    --muted:     #8a8a9a;
+    --pixel-font: 'Press Start 2P', monospace;
+    --body-font:  'VT323', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 20px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Scanline overlay ──────────────────────────────── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,.06) 2px, rgba(0,0,0,.06) 4px
+    );
+  }
+
+  /* ── Starfield background ──────────────────────────── */
+  .starfield {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(1px 1px at 10% 20%,  var(--cyan) 50%, transparent 50%),
+      radial-gradient(1px 1px at 30% 70%,  var(--pink) 50%, transparent 50%),
+      radial-gradient(1px 1px at 55% 15%,  var(--yellow) 50%, transparent 50%),
+      radial-gradient(1px 1px at 80% 55%,  var(--green) 50%, transparent 50%),
+      radial-gradient(1px 1px at 90% 10%,  var(--purple) 50%, transparent 50%),
+      radial-gradient(1px 1px at 15% 85%,  var(--yellow) 50%, transparent 50%),
+      radial-gradient(1px 1px at 45% 45%,  var(--cyan) 50%, transparent 50%),
+      radial-gradient(1px 1px at 70% 80%,  var(--pink) 50%, transparent 50%),
+      radial-gradient(1px 1px at 25% 40%,  var(--green) 50%, transparent 50%),
+      radial-gradient(1px 1px at 60% 60%,  var(--purple) 50%, transparent 50%);
+    animation: twinkle 4s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { 0% { opacity: .4; } 100% { opacity: 1; } }
+
+  /* ── Shared UI ─────────────────────────────────────── */
+  .hidden { display: none !important; }
+
+  /* ── SCREEN: Animal Picker ─────────────────────────── */
+  #pick-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  #pick-screen h1 {
+    font-family: var(--pixel-font);
+    font-size: 14px;
+    color: var(--pink);
+    margin: 20px 0 6px;
+    text-shadow: 0 0 10px rgba(255, 110, 199, 0.5);
+  }
+
+  #pick-screen .subtitle {
+    color: var(--muted);
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+
+  .animal-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    max-width: 600px;
+    width: 100%;
+  }
+
+  .animal-card {
+    background: var(--surface);
+    border: 2px solid var(--card);
+    border-radius: 10px;
+    padding: 14px 8px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .animal-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-3px);
+    box-shadow: 0 0 14px rgba(0, 255, 245, 0.25);
+  }
+
+  .animal-card .preview {
+    /* Container for the pixel art preview */
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .animal-card .name {
+    font-family: var(--pixel-font);
+    font-size: 7px;
+    color: var(--text);
+  }
+
+  /* ── SCREEN: Color Picker ──────────────────────────── */
+  #color-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  #color-screen h1 {
+    font-family: var(--pixel-font);
+    font-size: 14px;
+    color: var(--pink);
+    margin: 20px 0 6px;
+    text-shadow: 0 0 10px rgba(255, 110, 199, 0.5);
+  }
+
+  #color-screen .subtitle {
+    color: var(--muted);
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+
+  .color-options {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 500px;
+  }
+
+  .color-card {
+    background: var(--surface);
+    border: 2px solid var(--card);
+    border-radius: 10px;
+    padding: 14px 16px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .color-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-3px);
+    box-shadow: 0 0 14px rgba(0, 255, 245, 0.25);
+  }
+
+  .color-card .swatch {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.1);
+  }
+
+  .color-card .name {
+    font-family: var(--pixel-font);
+    font-size: 7px;
+    color: var(--text);
+  }
+
+  /* ── SCREEN: Name Your Pet ─────────────────────────── */
+  #name-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  #name-screen h1 {
+    font-family: var(--pixel-font);
+    font-size: 14px;
+    color: var(--pink);
+    margin-bottom: 6px;
+    text-shadow: 0 0 10px rgba(255, 110, 199, 0.5);
+  }
+
+  #name-screen .subtitle {
+    color: var(--muted);
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+
+  .name-preview {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  #name-input {
+    font-family: var(--pixel-font);
+    font-size: 12px;
+    background: var(--surface);
+    border: 2px solid var(--card);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 12px 16px;
+    text-align: center;
+    outline: none;
+    width: 260px;
+    margin-bottom: 16px;
+  }
+
+  #name-input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 245, 0.2);
+  }
+
+  #name-btn {
+    font-family: var(--pixel-font);
+    font-size: 10px;
+    padding: 12px 24px;
+    border: 2px solid var(--cyan);
+    background: transparent;
+    color: var(--cyan);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  #name-btn:hover {
+    background: rgba(0, 255, 245, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 0 12px rgba(0, 255, 245, 0.3);
+  }
+
+  /* ── SCREEN: Game ──────────────────────────────────── */
+  #game-screen {
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Back link */
+  .back-link {
+    font-family: var(--pixel-font);
+    font-size: 10px;
+    color: var(--cyan);
+    text-decoration: none;
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    transition: color 0.2s;
+    z-index: 50;
+  }
+  .back-link:hover { color: var(--pink); }
+
+  /* Size slider top right */
+  .size-slider-row {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 13px;
+    z-index: 50;
+  }
+  .size-slider-row input[type="range"] {
+    width: 120px;
+    accent-color: var(--cyan);
+  }
+
+  /* Pet play area — this is where all pets live */
+  .pet-area {
+    width: 100%;
+    height: calc(100vh - 80px);
+    position: relative;
+    overflow: hidden;
+    /* Sky */
+    background: linear-gradient(
+      180deg,
+      #87CEEB 0%,       /* light blue sky at top */
+      #B0E0FF 40%,      /* softer blue */
+      #90D860 40%,      /* grass starts here */
+      #78C850 55%,      /* mid grass */
+      #60A840 70%,      /* darker grass */
+      #509030 100%      /* darkest grass at bottom */
+    );
+  }
+
+  /* Fence across the middle of the yard */
+  .pet-area::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 32%;
+    height: 60px;
+    z-index: 1;
+    /* Repeating fence pickets */
+    background:
+      /* Horizontal rail top */
+      linear-gradient(0deg, transparent 0%, transparent 10%, #C8A060 10%, #C8A060 18%, transparent 18%),
+      /* Horizontal rail bottom */
+      linear-gradient(0deg, transparent 55%, transparent 55%, #C8A060 55%, #C8A060 63%, transparent 63%),
+      /* Vertical pickets */
+      repeating-linear-gradient(
+        90deg,
+        #D4B070 0px, #D4B070 12px,
+        #C8A060 12px, #C8A060 14px,
+        transparent 14px, transparent 40px
+      );
+  }
+
+  /* Sun in the top-right corner */
+  .sun {
+    position: absolute;
+    top: 30px;
+    right: 60px;
+    width: 60px;
+    height: 60px;
+    background: #FFE44D;
+    border-radius: 50%;
+    box-shadow: 0 0 40px #FFE44D, 0 0 80px rgba(255, 228, 77, 0.4);
+    z-index: 2;
+  }
+
+  /* Little flowers in the grass */
+  .flowers {
+    position: absolute;
+    bottom: 15%;
+    left: 0;
+    right: 0;
+    height: 40px;
+    z-index: 1;
+    background:
+      radial-gradient(4px 4px at 8% 50%,  #FF6B8A 60%, transparent 60%),
+      radial-gradient(4px 4px at 15% 30%, #FFD700 60%, transparent 60%),
+      radial-gradient(4px 4px at 25% 60%, #FF6B8A 60%, transparent 60%),
+      radial-gradient(4px 4px at 35% 40%, #FFFFFF 60%, transparent 60%),
+      radial-gradient(4px 4px at 48% 55%, #FFD700 60%, transparent 60%),
+      radial-gradient(4px 4px at 58% 35%, #FF6B8A 60%, transparent 60%),
+      radial-gradient(4px 4px at 68% 50%, #FFFFFF 60%, transparent 60%),
+      radial-gradient(4px 4px at 78% 40%, #FFD700 60%, transparent 60%),
+      radial-gradient(4px 4px at 88% 55%, #FF6B8A 60%, transparent 60%),
+      radial-gradient(4px 4px at 95% 35%, #FFFFFF 60%, transparent 60%);
+  }
+
+  /* Clouds drifting across the sky */
+  .cloud {
+    position: absolute;
+    background: white;
+    border-radius: 50px;
+    opacity: 0.8;
+    z-index: 2;
+    animation: drift linear infinite;
+  }
+  .cloud-1 { top: 8%; width: 100px; height: 30px; animation-duration: 30s; left: -100px; }
+  .cloud-2 { top: 15%; width: 70px; height: 22px; animation-duration: 40s; left: -70px; animation-delay: -15s; }
+  .cloud-3 { top: 5%; width: 120px; height: 35px; animation-duration: 50s; left: -120px; animation-delay: -25s; }
+
+  @keyframes drift {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(calc(100vw + 200px)); }
+  }
+
+  /* ── Trees ─────────────────────────────────────────── */
+  .tree {
+    position: absolute;
+    z-index: 1;
+  }
+
+  /* Tree trunk */
+  .tree .trunk {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #6B4226;
+    border-radius: 3px;
+  }
+
+  /* Tree leaves (layered circles for a full look) */
+  .tree .leaves {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+  }
+
+  /* Big tree on the left */
+  .tree-1 {
+    left: 5%;
+    bottom: 52%;
+  }
+  .tree-1 .trunk { width: 18px; height: 60px; background: #5C3A1E; }
+  .tree-1 .leaves {
+    width: 100px;
+    height: 90px;
+    background:
+      radial-gradient(ellipse 50px 45px at 50% 70%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(ellipse 45px 40px at 30% 50%, #3AA03A 70%, transparent 70%),
+      radial-gradient(ellipse 45px 40px at 70% 50%, #3AA03A 70%, transparent 70%),
+      radial-gradient(ellipse 40px 35px at 50% 30%, #48B848 70%, transparent 70%),
+      radial-gradient(ellipse 35px 30px at 35% 20%, #55CC55 70%, transparent 70%),
+      radial-gradient(ellipse 35px 30px at 65% 20%, #55CC55 70%, transparent 70%);
+    bottom: 90%;
+  }
+
+  /* Medium tree on the right */
+  .tree-2 {
+    right: 8%;
+    bottom: 52%;
+  }
+  .tree-2 .trunk { width: 14px; height: 50px; background: #6B4226; }
+  .tree-2 .leaves {
+    width: 80px;
+    height: 75px;
+    background:
+      radial-gradient(ellipse 40px 38px at 50% 70%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(ellipse 35px 33px at 30% 45%, #3AA03A 70%, transparent 70%),
+      radial-gradient(ellipse 35px 33px at 70% 45%, #3AA03A 70%, transparent 70%),
+      radial-gradient(ellipse 30px 28px at 50% 25%, #48B848 70%, transparent 70%);
+    bottom: 90%;
+  }
+
+  /* Small tree in the back-middle */
+  .tree-3 {
+    left: 35%;
+    bottom: 55%;
+  }
+  .tree-3 .trunk { width: 10px; height: 35px; background: #5C3A1E; }
+  .tree-3 .leaves {
+    width: 55px;
+    height: 50px;
+    background:
+      radial-gradient(ellipse 28px 26px at 50% 65%, #267326 70%, transparent 70%),
+      radial-gradient(ellipse 24px 22px at 35% 40%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(ellipse 24px 22px at 65% 40%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(ellipse 20px 18px at 50% 20%, #3AA03A 70%, transparent 70%);
+    bottom: 85%;
+  }
+
+  /* Another tree far right-back */
+  .tree-4 {
+    right: 25%;
+    bottom: 56%;
+  }
+  .tree-4 .trunk { width: 9px; height: 30px; background: #5C3A1E; }
+  .tree-4 .leaves {
+    width: 48px;
+    height: 44px;
+    background:
+      radial-gradient(ellipse 24px 22px at 50% 65%, #267326 70%, transparent 70%),
+      radial-gradient(ellipse 20px 18px at 35% 38%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(ellipse 20px 18px at 65% 38%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(ellipse 18px 16px at 50% 18%, #3AA03A 70%, transparent 70%);
+    bottom: 85%;
+  }
+
+  /* ── Individual pet on screen ──────────────────────── */
+  .pet {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .pet-label {
+    font-family: var(--pixel-font);
+    font-size: 9px;
+    color: var(--yellow);
+    white-space: nowrap;
+    margin-bottom: 0px;
+    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+  }
+
+  /* Tiny stat bars above each pet */
+  .pet-mini-bars {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 0px;
+  }
+
+  .pet-mini-bar-bg {
+    width: 30px;
+    height: 5px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .pet-mini-bar-fill {
+    height: 100%;
+    border-radius: 1px;
+    transition: width 0.4s ease;
+  }
+
+  .pet-mini-bar-fill.hunger { background: var(--green); }
+  .pet-mini-bar-fill.happy  { background: var(--yellow); }
+  .pet-mini-bar-fill.energy { background: var(--cyan); }
+
+  .pet-sprite {
+    position: relative;
+    image-rendering: pixelated;
+  }
+
+  /* Gentle bounce */
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+  }
+  .pet-sprite { animation: bounce 2s ease-in-out infinite; }
+
+  /* ── Side panel (slides out when you click a pet's bars) ── */
+  .side-panel {
+    position: fixed;
+    top: 0;
+    width: 220px;
+    height: 100vh;
+    background: var(--surface);
+    border: 2px solid var(--card);
+    padding: 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 200;
+    transition: transform 0.3s ease;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+  }
+
+  .side-panel.from-left {
+    left: 0;
+    transform: translateX(-100%);
+  }
+  .side-panel.from-right {
+    right: 0;
+    transform: translateX(100%);
+  }
+  .side-panel.open.from-left  { transform: translateX(0); }
+  .side-panel.open.from-right { transform: translateX(0); }
+
+  .side-panel h2 {
+    font-family: var(--pixel-font);
+    font-size: 10px;
+    color: var(--pink);
+  }
+
+  .side-panel .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .side-panel .stat-label {
+    font-family: var(--pixel-font);
+    font-size: 7px;
+    width: 55px;
+    text-align: right;
+    color: var(--muted);
+  }
+
+  .side-panel .stat-bar-bg {
+    flex: 1;
+    height: 10px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--card);
+  }
+
+  .side-panel .stat-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease, background-color 0.4s ease;
+  }
+
+  .side-panel .stat-bar-fill.high   { background: var(--green); }
+  .side-panel .stat-bar-fill.medium { background: var(--yellow); }
+  .side-panel .stat-bar-fill.low    { background: var(--pink); }
+
+  @keyframes flash {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+  }
+  .side-panel .stat-bar-fill.critical { animation: flash 0.6s ease-in-out infinite; }
+
+  /* ── Bottom buttons (always visible) ───────────────── */
+  .bottom-buttons {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+  }
+
+  .action-btn {
+    font-family: var(--pixel-font);
+    font-size: 8px;
+    padding: 10px 14px;
+    border: 2px solid var(--cyan);
+    background: var(--surface);
+    color: var(--cyan);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .action-btn:hover {
+    background: rgba(0, 255, 245, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 0 12px rgba(0, 255, 245, 0.3);
+  }
+
+  .action-btn:active { transform: translateY(0); }
+
+  .action-btn .cooldown-bar {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    background: rgba(0, 255, 245, 0.15);
+    width: 0%;
+    pointer-events: none;
+  }
+
+  .action-btn:disabled {
+    border-color: var(--muted);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+
+  /* ── Popup overlay ─────────────────────────────────── */
+  .popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+  }
+
+  .popup {
+    background: var(--surface);
+    border: 2px solid var(--card);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 340px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .popup h2 {
+    font-family: var(--pixel-font);
+    font-size: 11px;
+    color: var(--pink);
+  }
+
+  .popup p {
+    color: var(--text);
+    font-size: 22px;
+  }
+
+  .popup-btn {
+    font-family: var(--pixel-font);
+    font-size: 9px;
+    padding: 10px 20px;
+    border: 2px solid var(--cyan);
+    background: transparent;
+    color: var(--cyan);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .popup-btn:hover {
+    background: rgba(0, 255, 245, 0.1);
+    box-shadow: 0 0 10px rgba(0, 255, 245, 0.3);
+  }
+
+  .popup-btn.pink {
+    border-color: var(--pink);
+    color: var(--pink);
+  }
+
+  .popup-btn.pink:hover {
+    background: rgba(255, 110, 199, 0.1);
+    box-shadow: 0 0 10px rgba(255, 110, 199, 0.3);
+  }
+
+  .popup-btns {
+    display: flex;
+    gap: 10px;
+  }
+
+  /* ── Responsive ────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .animal-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .bottom-buttons {
+      gap: 6px;
+    }
+    .action-btn {
+      font-size: 7px;
+      padding: 8px 8px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .animal-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="starfield"></div>
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN 1: Pick your animal
+     ════════════════════════════════════════════════════ -->
+<div id="pick-screen">
+  <h1>Pick your pet!</h1>
+  <p class="subtitle">Choose an animal to adopt</p>
+  <div class="animal-grid" id="animal-grid">
+    <!-- Filled by JavaScript -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN 2: Pick a color
+     ════════════════════════════════════════════════════ -->
+<div id="color-screen" class="hidden">
+  <h1>Pick a color!</h1>
+  <p class="subtitle" id="color-subtitle">Choose a color for your pet</p>
+  <div class="color-options" id="color-options">
+    <!-- Filled by JavaScript -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN 3: Name your pet
+     ════════════════════════════════════════════════════ -->
+<div id="name-screen" class="hidden">
+  <h1>Name your pet!</h1>
+  <p class="subtitle" id="name-subtitle">What will you call your new friend?</p>
+  <div class="name-preview" id="name-preview"></div>
+  <input type="text" id="name-input" placeholder="Type a name..." maxlength="12">
+  <button id="name-btn">LET'S GO!</button>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     SCREEN 4: The actual game!
+     ════════════════════════════════════════════════════ -->
+<div id="game-screen" class="hidden">
+  <a href="/" class="back-link">&lt; back</a>
+
+  <div class="size-slider-row">
+    <span>&#9898;</span>
+    <input type="range" id="size-slider" min="0" max="100" value="0">
+    <span>&#11044;</span>
+  </div>
+
+  <div class="pet-area" id="pet-area">
+    <!-- Backyard decorations -->
+    <div class="sun"></div>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+    <div class="tree tree-1"><div class="trunk"></div><div class="leaves"></div></div>
+    <div class="tree tree-2"><div class="trunk"></div><div class="leaves"></div></div>
+    <div class="tree tree-3"><div class="trunk"></div><div class="leaves"></div></div>
+    <div class="tree tree-4"><div class="trunk"></div><div class="leaves"></div></div>
+    <div class="flowers"></div>
+    <!-- Pets are placed here by JavaScript -->
+  </div>
+
+  <!-- Side panel for detailed stats (slides in when you click a pet) -->
+  <div class="side-panel from-right" id="side-panel">
+    <h2 id="panel-name">Pet Name</h2>
+    <div class="stat-row">
+      <span class="stat-label">HUNGER</span>
+      <div class="stat-bar-bg"><div class="stat-bar-fill high" id="panel-hunger" style="width:100%"></div></div>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">HAPPY</span>
+      <div class="stat-bar-bg"><div class="stat-bar-fill high" id="panel-happy" style="width:100%"></div></div>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">ENERGY</span>
+      <div class="stat-bar-bg"><div class="stat-bar-fill high" id="panel-energy" style="width:100%"></div></div>
+    </div>
+  </div>
+
+  <!-- Action buttons always at bottom center -->
+  <div class="bottom-buttons">
+    <button class="action-btn" id="btn-feed">
+      <span class="cooldown-bar" id="cd-feed"></span>
+      FEED
+    </button>
+    <button class="action-btn" id="btn-play">
+      <span class="cooldown-bar" id="cd-play"></span>
+      PLAY
+    </button>
+    <button class="action-btn" id="btn-sleep">
+      <span class="cooldown-bar" id="cd-sleep"></span>
+      SLEEP
+    </button>
+    <button class="action-btn" id="btn-walk">
+      <span class="cooldown-bar" id="cd-walk"></span>
+      WALK YOUR PET
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     Popup container (for messages, baby prompts, etc.)
+     ════════════════════════════════════════════════════ -->
+<div id="popup-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// PIXEL PET — Game Code
+// ═══════════════════════════════════════════════════════
+
+// ── Animal definitions ────────────────────────────────
+// Each animal has a type, display name, color options,
+// walk scene, max babies before oldest dies, and max level
+const ANIMALS = {
+  cat: {
+    name: 'Cat',
+    colors: [
+      { name: 'Orange',    base: '#e08030', dark: '#c06020', light: '#ffbb77' },
+      { name: 'Calico',    base: '#e08030', dark: '#4a3728', light: '#ffffff', patches: true },
+      { name: 'Siamese',   base: '#f5e6d3', dark: '#4a3728', light: '#ffffff' },
+      { name: 'Black',     base: '#333333', dark: '#1a1a1a', light: '#555555' },
+      { name: 'White',     base: '#eeeeee', dark: '#cccccc', light: '#ffffff' },
+    ],
+    walkScene: 'park',
+    maxBabies: 7,
+    maxLevel: 25,
+  },
+  dog: {
+    name: 'Dog',
+    colors: [
+      { name: 'Brown',      base: '#8B5E3C', dark: '#6B3F1F', light: '#B87A4B' },
+      { name: 'Black',      base: '#333333', dark: '#1a1a1a', light: '#555555' },
+      { name: 'White',      base: '#eeeeee', dark: '#cccccc', light: '#ffffff' },
+      { name: 'Light Brown', base: '#C4915E', dark: '#8B5E3C', light: '#E0B88A' },
+    ],
+    walkScene: 'forest',
+    maxBabies: 5,
+    maxLevel: 23,
+  },
+  bunny: {
+    name: 'Bunny',
+    colors: [
+      { name: 'White',      base: '#eeeeee', dark: '#cccccc', light: '#ffffff' },
+      { name: 'Brown',      base: '#8B5E3C', dark: '#6B3F1F', light: '#B87A4B' },
+      { name: 'Black',      base: '#333333', dark: '#1a1a1a', light: '#555555' },
+      { name: 'Light Brown', base: '#C4915E', dark: '#8B5E3C', light: '#E0B88A' },
+    ],
+    walkScene: 'park',
+    maxBabies: 7,
+    maxLevel: 25,
+  },
+  hamster: {
+    name: 'Hamster',
+    colors: [
+      { name: 'Brown',      base: '#C4915E', dark: '#8B5E3C', light: '#E0B88A' },
+      { name: 'White',      base: '#eeeeee', dark: '#cccccc', light: '#ffffff' },
+      { name: 'Light Brown', base: '#D4A574', dark: '#B87A4B', light: '#F0D0A0' },
+      { name: 'Black',      base: '#333333', dark: '#1a1a1a', light: '#555555' },
+    ],
+    walkScene: 'park',
+    maxBabies: 7,
+    maxLevel: 25,
+  },
+  fox: {
+    name: 'Fox',
+    colors: [
+      { name: 'Orange',     base: '#D06020', dark: '#A04010', light: '#F08040' },
+      { name: 'Light Brown', base: '#C4915E', dark: '#8B5E3C', light: '#E0B88A' },
+      { name: 'White',      base: '#eeeeee', dark: '#cccccc', light: '#ffffff' },
+      { name: 'Black',      base: '#333333', dark: '#1a1a1a', light: '#555555' },
+    ],
+    walkScene: 'forest',
+    maxBabies: 7,
+    maxLevel: 25,
+  },
+  chicken: {
+    name: 'Chicken',
+    colors: [
+      { name: 'White',      base: '#eeeeee', dark: '#cccccc', light: '#ffffff' },
+      { name: 'Brown',      base: '#8B5E3C', dark: '#6B3F1F', light: '#B87A4B' },
+      { name: 'Black',      base: '#333333', dark: '#1a1a1a', light: '#555555' },
+      { name: 'Light Brown', base: '#C4915E', dark: '#8B5E3C', light: '#E0B88A' },
+    ],
+    walkScene: 'park',
+    maxBabies: 7,
+    maxLevel: 25,
+  },
+  owl: {
+    name: 'Owl',
+    colors: [
+      { name: 'Brown',      base: '#8B5E3C', dark: '#6B3F1F', light: '#B87A4B' },
+      { name: 'White',      base: '#eeeeee', dark: '#cccccc', light: '#ffffff' },
+      { name: 'Light Brown', base: '#C4915E', dark: '#8B5E3C', light: '#E0B88A' },
+      { name: 'Black',      base: '#333333', dark: '#1a1a1a', light: '#555555' },
+    ],
+    walkScene: 'forest',
+    maxBabies: 7,
+    maxLevel: 25,
+  },
+  penguin: {
+    name: 'Penguin',
+    colors: [
+      { name: 'Black',      base: '#222222', dark: '#111111', light: '#444444' },
+      { name: 'Brown',      base: '#5E3C2C', dark: '#3F2818', light: '#8B5E3C' },
+      { name: 'White',      base: '#cccccc', dark: '#999999', light: '#eeeeee' },
+    ],
+    walkScene: 'ice',
+    maxBabies: 5,
+    maxLevel: 23,
+  },
+  duck: {
+    name: 'Duck',
+    colors: [
+      { name: 'White',      base: '#eeeeee', dark: '#cccccc', light: '#ffffff' },
+      { name: 'Brown',      base: '#8B5E3C', dark: '#6B3F1F', light: '#B87A4B' },
+      { name: 'Black',      base: '#333333', dark: '#1a1a1a', light: '#555555' },
+      { name: 'Light Brown', base: '#C4915E', dark: '#8B5E3C', light: '#E0B88A' },
+    ],
+    walkScene: 'pond',
+    maxBabies: 7,
+    maxLevel: 25,
+  },
+  wolf: {
+    name: 'Wolf',
+    colors: [
+      { name: 'Grey',       base: '#777777', dark: '#555555', light: '#999999' },
+      { name: 'Black',      base: '#333333', dark: '#1a1a1a', light: '#555555' },
+      { name: 'White',      base: '#dddddd', dark: '#bbbbbb', light: '#ffffff' },
+      { name: 'Brown',      base: '#6B4F3A', dark: '#4A3528', light: '#8B6F5A' },
+    ],
+    walkScene: 'forest',
+    maxBabies: 5,
+    maxLevel: 23,
+  },
+};
+
+// ── Sprite drawing ────────────────────────────────────
+// Each sprite is drawn using CSS box-shadow on a 1px element.
+// We generate the box-shadow string based on the animal type,
+// color, and growth stage (baby=9x9, teen=13x13, adult=16x16).
+//
+// b = base color, d = dark color, l = light color, e = eye color, n = nose color
+
+function getSprite(animalType, color, stage) {
+  const b = color.base;
+  const d = color.dark;
+  const l = color.light;
+  const e = '#222';     // eyes are always dark
+  const n = '#ffaaaa';  // nose is always pink
+  const w = '#ffffff';  // white of eye
+
+  // Returns { boxShadow, scale, width (in pixel units), height }
+  if (animalType === 'cat') return getCatSprite(b, d, l, e, n, w, stage);
+  if (animalType === 'dog') return getDogSprite(b, d, l, e, n, w, stage);
+  if (animalType === 'bunny') return getBunnySprite(b, d, l, e, n, w, stage);
+  if (animalType === 'hamster') return getHamsterSprite(b, d, l, e, n, w, stage);
+  if (animalType === 'fox') return getFoxSprite(b, d, l, e, n, w, stage);
+  if (animalType === 'chicken') return getChickenSprite(b, d, l, e, n, w, stage);
+  if (animalType === 'owl') return getOwlSprite(b, d, l, e, n, w, stage);
+  if (animalType === 'penguin') return getPenguinSprite(b, d, l, e, n, w, stage);
+  if (animalType === 'duck') return getDuckSprite(b, d, l, e, n, w, stage);
+  if (animalType === 'wolf') return getWolfSprite(b, d, l, e, n, w, stage);
+  return getCatSprite(b, d, l, e, n, w, stage); // fallback
+}
+
+// Helper: makes a pixel string "Xpx Ypx COLOR"
+function px(x, y, c) { return x + 'px ' + y + 'px ' + c; }
+
+// ── CAT sprites ───────────────────────────────────────
+function getCatSprite(b, d, l, e, n, w, stage) {
+  if (stage === 'baby') {
+    return {
+      boxShadow: [
+        px(1,0,b), px(7,0,b),
+        px(1,1,b), px(2,1,b), px(6,1,b), px(7,1,b),
+        px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b),
+        px(1,3,b), px(2,3,e), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,e), px(7,3,b),
+        px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,n), px(5,4,b), px(6,4,b), px(7,4,b),
+        px(1,5,b), px(2,5,b), px(3,5,e), px(4,5,b), px(5,5,e), px(6,5,b), px(7,5,b),
+        px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,b),
+        px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
+        px(2,8,d), px(3,8,d), px(5,8,d), px(6,8,d),
+      ].join(','),
+      scale: 45, w: 16, h: 16
+    };
+  }
+  if (stage === 'teen') {
+    return {
+      boxShadow: [
+        px(1,0,b), px(2,0,b), px(10,0,b), px(11,0,b),
+        px(1,1,b), px(2,1,b), px(3,1,b), px(9,1,b), px(10,1,b), px(11,1,b),
+        px(2,2,b), px(3,2,l), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,l), px(10,2,b),
+        px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b),
+        px(1,4,b), px(2,4,b), px(3,4,w), px(4,4,e), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,w), px(9,4,e), px(10,4,b), px(11,4,b),
+        px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b), px(7,5,b), px(8,5,b), px(9,5,b), px(10,5,b), px(11,5,b),
+        px(1,6,b), px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,n), px(7,6,b), px(8,6,b), px(9,6,b), px(10,6,b), px(11,6,b),
+        px(1,7,b), px(2,7,b), px(3,7,b), px(4,7,b), px(5,7,e), px(6,7,b), px(7,7,e), px(8,7,b), px(9,7,b), px(10,7,b), px(11,7,b),
+        px(0,8,'#888'), px(1,8,b), px(2,8,b), px(3,8,b), px(4,8,b), px(5,8,b), px(6,8,b), px(7,8,b), px(8,8,b), px(9,8,b), px(10,8,b), px(11,8,b), px(12,8,'#888'),
+        px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+        px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+        px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d),
+        px(3,12,d), px(4,12,d), px(6,12,d), px(8,12,d), px(9,12,d), px(12,12,d),
+      ].join(','),
+      scale: 45, w: 16, h: 16
+    };
+  }
+  // adult (16x16)
+  return {
+    boxShadow: [
+      px(2,0,b), px(3,0,b), px(12,0,b), px(13,0,b),
+      px(1,1,b), px(2,1,b), px(3,1,b), px(12,1,b), px(13,1,b), px(14,1,b),
+      px(1,2,b), px(2,2,l), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b), px(13,2,l), px(14,2,b),
+      px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b), px(12,3,b), px(13,3,b),
+      px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,b), px(11,4,b), px(12,4,b), px(13,4,b), px(14,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,w), px(4,5,w), px(5,5,e), px(6,5,b), px(7,5,b), px(8,5,b), px(9,5,b), px(10,5,w), px(11,5,w), px(12,5,e), px(13,5,b), px(14,5,b),
+      px(1,6,b), px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,b), px(7,6,b), px(8,6,b), px(9,6,b), px(10,6,b), px(11,6,b), px(12,6,b), px(13,6,b), px(14,6,b),
+      px(1,7,b), px(2,7,b), px(3,7,b), px(4,7,b), px(5,7,b), px(6,7,b), px(7,7,n), px(8,7,n), px(9,7,b), px(10,7,b), px(11,7,b), px(12,7,b), px(13,7,b), px(14,7,b),
+      px(1,8,b), px(2,8,b), px(3,8,b), px(4,8,b), px(5,8,b), px(6,8,e), px(7,8,b), px(8,8,b), px(9,8,e), px(10,8,b), px(11,8,b), px(12,8,b), px(13,8,b), px(14,8,b),
+      px(0,9,'#888'), px(1,9,b), px(2,9,b), px(3,9,b), px(4,9,b), px(5,9,b), px(6,9,b), px(7,9,b), px(8,9,b), px(9,9,b), px(10,9,b), px(11,9,b), px(12,9,b), px(13,9,b), px(14,9,b), px(15,9,'#888'),
+      px(2,10,b), px(3,10,b), px(4,10,b), px(5,10,b), px(6,10,b), px(7,10,b), px(8,10,b), px(9,10,b), px(10,10,b), px(11,10,b), px(12,10,b), px(13,10,b),
+      px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d), px(12,11,d),
+      px(3,12,d), px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d), px(12,12,d),
+      px(3,13,d), px(4,13,d), px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d), px(11,13,d), px(12,13,d), px(13,13,d),
+      px(3,14,d), px(4,14,d), px(5,14,d), px(6,14,d), px(7,14,d), px(8,14,d), px(9,14,d), px(10,14,d), px(11,14,d), px(12,14,d), px(13,14,d), px(14,14,d),
+      px(3,15,d), px(4,15,d), px(5,15,d), px(7,15,d), px(9,15,d), px(10,15,d), px(11,15,d), px(15,15,d),
+    ].join(','),
+    scale: 22, w: 16, h: 16
+  };
+}
+
+// ── Placeholder sprites for the other 9 animals ──────
+// These use simplified shapes for now — we'll detail them next!
+// Each one has a unique silhouette so you can tell them apart.
+
+function getDogSprite(b, d, l, e, n, w, stage) {
+  if (stage === 'baby') {
+    return { boxShadow: [
+      px(1,0,b), px(7,0,b),
+      px(0,1,b), px(1,1,b), px(7,1,b), px(8,1,b),
+      px(0,2,b), px(1,2,b), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b),
+      px(1,3,b), px(2,3,e), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,e), px(7,3,b),
+      px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,e), px(5,4,b), px(6,4,b), px(7,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,e), px(4,5,b), px(5,5,e), px(6,5,b), px(7,5,b),
+      px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,b),
+      px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
+      px(2,8,d), px(3,8,d), px(5,8,d), px(6,8,d),
+    ].join(','), scale: 6, w: 9, h: 9 };
+  }
+  if (stage === 'teen') {
+    return { boxShadow: [
+      px(0,0,b), px(1,0,b), px(11,0,b), px(12,0,b),
+      px(0,1,b), px(1,1,b), px(2,1,b), px(10,1,b), px(11,1,b), px(12,1,b),
+      px(0,2,b), px(1,2,l), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,l), px(12,2,b),
+      px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b),
+      px(1,4,b), px(2,4,w), px(3,4,e), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,w), px(9,4,e), px(10,4,b), px(11,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b), px(7,5,b), px(8,5,b), px(9,5,b), px(10,5,b), px(11,5,b),
+      px(1,6,b), px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,e), px(6,6,e), px(7,6,e), px(8,6,b), px(9,6,b), px(10,6,b), px(11,6,b),
+      px(1,7,b), px(2,7,b), px(3,7,b), px(4,7,b), px(5,7,b), px(6,7,n), px(7,7,b), px(8,7,b), px(9,7,b), px(10,7,b), px(11,7,b),
+      px(2,8,b), px(3,8,b), px(4,8,b), px(5,8,b), px(6,8,b), px(7,8,b), px(8,8,b), px(9,8,b), px(10,8,b),
+      px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+      px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+      px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d),
+      px(3,12,d), px(4,12,d), px(6,12,d), px(8,12,d), px(9,12,d), px(11,12,d),
+    ].join(','), scale: 6, w: 13, h: 13 };
+  }
+  return { boxShadow: [
+    px(0,0,b), px(1,0,b), px(14,0,b), px(15,0,b),
+    px(0,1,b), px(1,1,b), px(2,1,b), px(13,1,b), px(14,1,b), px(15,1,b),
+    px(0,2,b), px(1,2,l), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b), px(13,2,b), px(14,2,l), px(15,2,b),
+    px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b), px(12,3,b), px(13,3,b), px(14,3,b),
+    px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,b), px(11,4,b), px(12,4,b), px(13,4,b), px(14,4,b),
+    px(1,5,b), px(2,5,w), px(3,5,w), px(4,5,e), px(5,5,b), px(6,5,b), px(7,5,b), px(8,5,b), px(9,5,b), px(10,5,w), px(11,5,w), px(12,5,e), px(13,5,b), px(14,5,b),
+    px(1,6,b), px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,b), px(7,6,b), px(8,6,b), px(9,6,b), px(10,6,b), px(11,6,b), px(12,6,b), px(13,6,b), px(14,6,b),
+    px(1,7,b), px(2,7,b), px(3,7,b), px(4,7,b), px(5,7,b), px(6,7,e), px(7,7,e), px(8,7,e), px(9,7,e), px(10,7,b), px(11,7,b), px(12,7,b), px(13,7,b), px(14,7,b),
+    px(1,8,b), px(2,8,b), px(3,8,b), px(4,8,b), px(5,8,b), px(6,8,b), px(7,8,n), px(8,8,n), px(9,8,b), px(10,8,b), px(11,8,b), px(12,8,b), px(13,8,b), px(14,8,b),
+    px(2,9,b), px(3,9,b), px(4,9,b), px(5,9,b), px(6,9,b), px(7,9,b), px(8,9,b), px(9,9,b), px(10,9,b), px(11,9,b), px(12,9,b), px(13,9,b),
+    px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d), px(10,10,d), px(11,10,d), px(12,10,d),
+    px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d), px(12,11,d),
+    px(3,12,d), px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d), px(12,12,d), px(13,12,d),
+    px(3,13,d), px(4,13,d), px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d), px(11,13,d), px(12,13,d), px(13,13,d),
+    px(3,14,d), px(4,14,d), px(5,14,d), px(6,14,d), px(7,14,d), px(8,14,d), px(9,14,d), px(10,14,d), px(11,14,d), px(12,14,d), px(13,14,d), px(14,14,d),
+    px(3,15,d), px(4,15,d), px(5,15,d), px(7,15,d), px(9,15,d), px(10,15,d), px(11,15,d), px(15,15,d),
+  ].join(','), scale: 5, w: 16, h: 16 };
+}
+
+function getBunnySprite(b, d, l, e, n, w, stage) {
+  if (stage === 'baby') {
+    return { boxShadow: [
+      px(2,0,b), px(3,0,b), px(5,0,b), px(6,0,b),
+      px(2,1,b), px(3,1,l), px(5,1,l), px(6,1,b),
+      px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b),
+      px(1,3,b), px(2,3,e), px(3,3,b), px(4,3,b), px(5,3,e), px(6,3,b), px(7,3,b),
+      px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,n), px(5,4,b), px(6,4,b), px(7,4,b),
+      px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b),
+      px(2,6,d), px(3,6,d), px(4,6,d), px(5,6,d), px(6,6,d),
+      px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
+      px(2,8,d), px(3,8,d), px(5,8,d), px(6,8,d),
+    ].join(','), scale: 6, w: 9, h: 9 };
+  }
+  if (stage === 'teen') {
+    return { boxShadow: [
+      px(3,0,b), px(4,0,b), px(8,0,b), px(9,0,b),
+      px(3,1,b), px(4,1,l), px(8,1,l), px(9,1,b),
+      px(3,2,b), px(4,2,b), px(8,2,b), px(9,2,b),
+      px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b),
+      px(2,4,b), px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,b),
+      px(2,5,b), px(3,5,w), px(4,5,e), px(5,5,b), px(6,5,b), px(7,5,b), px(8,5,w), px(9,5,e), px(10,5,b),
+      px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,n), px(7,6,b), px(8,6,b), px(9,6,b), px(10,6,b),
+      px(2,7,b), px(3,7,b), px(4,7,b), px(5,7,e), px(6,7,b), px(7,7,e), px(8,7,b), px(9,7,b), px(10,7,b),
+      px(3,8,b), px(4,8,b), px(5,8,b), px(6,8,b), px(7,8,b), px(8,8,b), px(9,8,b),
+      px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+      px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+      px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d),
+      px(3,12,d), px(4,12,d), px(6,12,d), px(8,12,d), px(9,12,d),
+    ].join(','), scale: 6, w: 13, h: 13 };
+  }
+  return { boxShadow: [
+    px(4,0,b), px(5,0,b), px(10,0,b), px(11,0,b),
+    px(4,1,b), px(5,1,l), px(10,1,l), px(11,1,b),
+    px(4,2,b), px(5,2,b), px(10,2,b), px(11,2,b),
+    px(4,3,b), px(5,3,b), px(10,3,b), px(11,3,b),
+    px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,b), px(11,4,b), px(12,4,b),
+    px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b), px(7,5,b), px(8,5,b), px(9,5,b), px(10,5,b), px(11,5,b), px(12,5,b), px(13,5,b),
+    px(2,6,b), px(3,6,w), px(4,6,w), px(5,6,e), px(6,6,b), px(7,6,b), px(8,6,b), px(9,6,b), px(10,6,w), px(11,6,w), px(12,6,e), px(13,6,b),
+    px(2,7,b), px(3,7,b), px(4,7,b), px(5,7,b), px(6,7,b), px(7,7,b), px(8,7,b), px(9,7,b), px(10,7,b), px(11,7,b), px(12,7,b), px(13,7,b),
+    px(2,8,b), px(3,8,b), px(4,8,b), px(5,8,b), px(6,8,b), px(7,8,n), px(8,8,n), px(9,8,b), px(10,8,b), px(11,8,b), px(12,8,b), px(13,8,b),
+    px(2,9,b), px(3,9,b), px(4,9,b), px(5,9,b), px(6,9,e), px(7,9,b), px(8,9,b), px(9,9,e), px(10,9,b), px(11,9,b), px(12,9,b), px(13,9,b),
+    px(3,10,b), px(4,10,b), px(5,10,b), px(6,10,b), px(7,10,b), px(8,10,b), px(9,10,b), px(10,10,b), px(11,10,b), px(12,10,b),
+    px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d), px(12,11,d),
+    px(3,12,d), px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d), px(12,12,d),
+    px(3,13,d), px(4,13,d), px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d), px(11,13,d), px(12,13,d),
+    px(4,14,d), px(5,14,d), px(6,14,d), px(7,14,d), px(8,14,d), px(9,14,d), px(10,14,d), px(11,14,d),
+    px(4,15,d), px(5,15,d), px(7,15,d), px(8,15,d), px(10,15,d), px(11,15,d),
+  ].join(','), scale: 5, w: 16, h: 16 };
+}
+
+function getHamsterSprite(b, d, l, e, n, w, stage) {
+  if (stage === 'baby') {
+    return { boxShadow: [
+      px(1,0,b), px(2,0,b), px(3,0,b), px(4,0,b), px(5,0,b), px(6,0,b), px(7,0,b),
+      px(0,1,b), px(1,1,b), px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b),
+      px(0,2,b), px(1,2,e), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,e), px(7,2,b), px(8,2,b),
+      px(0,3,b), px(1,3,b), px(2,3,b), px(3,3,n), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b),
+      px(1,4,b), px(2,4,l), px(3,4,l), px(4,4,l), px(5,4,l), px(6,4,l), px(7,4,b),
+      px(1,5,b), px(2,5,l), px(3,5,l), px(4,5,l), px(5,5,l), px(6,5,l), px(7,5,b),
+      px(2,6,d), px(3,6,d), px(4,6,d), px(5,6,d), px(6,6,d),
+      px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
+      px(2,8,d), px(3,8,d), px(5,8,d), px(6,8,d),
+    ].join(','), scale: 6, w: 9, h: 9 };
+  }
+  if (stage === 'teen') {
+    return { boxShadow: [
+      px(1,0,b), px(2,0,b), px(10,0,b), px(11,0,b),
+      px(1,1,b), px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b), px(9,1,b), px(10,1,b), px(11,1,b),
+      px(0,2,b), px(1,2,b), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b),
+      px(0,3,b), px(1,3,b), px(2,3,w), px(3,3,e), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,w), px(10,3,e), px(11,3,b), px(12,3,b),
+      px(0,4,b), px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,n), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,b), px(11,4,b), px(12,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,l), px(5,5,l), px(6,5,l), px(7,5,l), px(8,5,l), px(9,5,b), px(10,5,b), px(11,5,b),
+      px(1,6,b), px(2,6,b), px(3,6,l), px(4,6,l), px(5,6,l), px(6,6,l), px(7,6,l), px(8,6,l), px(9,6,l), px(10,6,b), px(11,6,b),
+      px(2,7,b), px(3,7,l), px(4,7,l), px(5,7,l), px(6,7,l), px(7,7,l), px(8,7,l), px(9,7,l), px(10,7,b),
+      px(3,8,d), px(4,8,d), px(5,8,d), px(6,8,d), px(7,8,d), px(8,8,d), px(9,8,d),
+      px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+      px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+      px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d),
+      px(3,12,d), px(4,12,d), px(6,12,d), px(8,12,d), px(9,12,d),
+    ].join(','), scale: 6, w: 13, h: 13 };
+  }
+  return { boxShadow: [
+    px(2,0,b), px(3,0,b), px(12,0,b), px(13,0,b),
+    px(1,1,b), px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b), px(9,1,b), px(10,1,b), px(11,1,b), px(12,1,b), px(13,1,b), px(14,1,b),
+    px(0,2,b), px(1,2,b), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b), px(13,2,b), px(14,2,b), px(15,2,b),
+    px(0,3,b), px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b), px(12,3,b), px(13,3,b), px(14,3,b), px(15,3,b),
+    px(0,4,b), px(1,4,b), px(2,4,b), px(3,4,w), px(4,4,w), px(5,4,e), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,w), px(11,4,w), px(12,4,e), px(13,4,b), px(14,4,b), px(15,4,b),
+    px(0,5,b), px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b), px(7,5,n), px(8,5,n), px(9,5,b), px(10,5,b), px(11,5,b), px(12,5,b), px(13,5,b), px(14,5,b), px(15,5,b),
+    px(1,6,b), px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,l), px(6,6,l), px(7,6,l), px(8,6,l), px(9,6,l), px(10,6,l), px(11,6,b), px(12,6,b), px(13,6,b), px(14,6,b),
+    px(1,7,b), px(2,7,b), px(3,7,l), px(4,7,l), px(5,7,l), px(6,7,l), px(7,7,l), px(8,7,l), px(9,7,l), px(10,7,l), px(11,7,l), px(12,7,l), px(13,7,b), px(14,7,b),
+    px(2,8,b), px(3,8,l), px(4,8,l), px(5,8,l), px(6,8,l), px(7,8,l), px(8,8,l), px(9,8,l), px(10,8,l), px(11,8,l), px(12,8,l), px(13,8,b),
+    px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d), px(10,9,d), px(11,9,d), px(12,9,d),
+    px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d), px(10,10,d), px(11,10,d), px(12,10,d),
+    px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d), px(12,11,d),
+    px(3,12,d), px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d), px(12,12,d),
+    px(3,13,d), px(4,13,d), px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d), px(11,13,d), px(12,13,d),
+    px(4,14,d), px(5,14,d), px(6,14,d), px(7,14,d), px(8,14,d), px(9,14,d), px(10,14,d), px(11,14,d),
+    px(4,15,d), px(5,15,d), px(7,15,d), px(8,15,d), px(10,15,d), px(11,15,d),
+  ].join(','), scale: 5, w: 16, h: 16 };
+}
+
+function getFoxSprite(b, d, l, e, n, w, stage) {
+  // Fox is like a cat but with a pointier face and bigger ears
+  if (stage === 'baby') {
+    return { boxShadow: [
+      px(0,0,b), px(8,0,b),
+      px(0,1,b), px(1,1,b), px(7,1,b), px(8,1,b),
+      px(1,2,b), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b),
+      px(1,3,b), px(2,3,e), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,e), px(7,3,b),
+      px(1,4,b), px(2,4,b), px(3,4,l), px(4,4,n), px(5,4,l), px(6,4,b), px(7,4,b),
+      px(2,5,b), px(3,5,l), px(4,5,l), px(5,5,l), px(6,5,b),
+      px(2,6,d), px(3,6,d), px(4,6,d), px(5,6,d), px(6,6,d),
+      px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
+      px(2,8,d), px(3,8,d), px(5,8,d), px(6,8,d),
+    ].join(','), scale: 6, w: 9, h: 9 };
+  }
+  if (stage === 'teen') {
+    return { boxShadow: [
+      px(0,0,b), px(12,0,b),
+      px(0,1,b), px(1,1,b), px(11,1,b), px(12,1,b),
+      px(1,2,b), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b),
+      px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b),
+      px(1,4,b), px(2,4,w), px(3,4,e), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,w), px(10,4,e), px(11,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,l), px(5,5,l), px(6,5,n), px(7,5,l), px(8,5,l), px(9,5,b), px(10,5,b), px(11,5,b),
+      px(2,6,b), px(3,6,b), px(4,6,l), px(5,6,l), px(6,6,l), px(7,6,l), px(8,6,l), px(9,6,b), px(10,6,b),
+      px(2,7,b), px(3,7,l), px(4,7,l), px(5,7,l), px(6,7,l), px(7,7,l), px(8,7,l), px(9,7,l), px(10,7,b),
+      px(3,8,d), px(4,8,d), px(5,8,d), px(6,8,d), px(7,8,d), px(8,8,d), px(9,8,d),
+      px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+      px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+      px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d),
+      px(3,12,d), px(4,12,d), px(6,12,d), px(8,12,d), px(9,12,d), px(12,12,d),
+    ].join(','), scale: 6, w: 13, h: 13 };
+  }
+  return { boxShadow: [
+    px(0,0,b), px(1,0,b), px(14,0,b), px(15,0,b),
+    px(0,1,b), px(1,1,b), px(2,1,b), px(13,1,b), px(14,1,b), px(15,1,b),
+    px(1,2,b), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b), px(13,2,b), px(14,2,b),
+    px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b), px(12,3,b), px(13,3,b), px(14,3,b),
+    px(1,4,b), px(2,4,b), px(3,4,w), px(4,4,w), px(5,4,e), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,w), px(11,4,w), px(12,4,e), px(13,4,b), px(14,4,b),
+    px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,l), px(7,5,l), px(8,5,n), px(9,5,l), px(10,5,l), px(11,5,b), px(12,5,b), px(13,5,b), px(14,5,b),
+    px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,l), px(6,6,l), px(7,6,l), px(8,6,l), px(9,6,l), px(10,6,l), px(11,6,b), px(12,6,b), px(13,6,b),
+    px(2,7,b), px(3,7,b), px(4,7,l), px(5,7,l), px(6,7,l), px(7,7,l), px(8,7,l), px(9,7,l), px(10,7,l), px(11,7,l), px(12,7,b), px(13,7,b),
+    px(3,8,d), px(4,8,d), px(5,8,d), px(6,8,d), px(7,8,d), px(8,8,d), px(9,8,d), px(10,8,d), px(11,8,d), px(12,8,d),
+    px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d), px(10,9,d), px(11,9,d), px(12,9,d),
+    px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d), px(10,10,d), px(11,10,d), px(12,10,d),
+    px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d), px(12,11,d),
+    px(3,12,d), px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d), px(12,12,d), px(13,12,d),
+    px(3,13,d), px(4,13,d), px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d), px(11,13,d), px(12,13,d), px(13,13,d), px(14,13,d),
+    px(3,14,d), px(4,14,d), px(5,14,d), px(7,14,d), px(9,14,d), px(10,14,d), px(11,14,d), px(14,14,d), px(15,14,d),
+    px(3,15,d), px(4,15,d), px(7,15,d), px(10,15,d), px(11,15,d),
+  ].join(','), scale: 5, w: 16, h: 16 };
+}
+
+function getChickenSprite(b, d, l, e, n, w, stage) {
+  const beak = '#E8A317'; // yellow/orange beak
+  const comb = '#CC2222'; // red comb on top
+  if (stage === 'baby') {
+    // Baby chick — round and fluffy!
+    return { boxShadow: [
+      px(3,0,'#F0D060'), px(4,0,'#F0D060'), px(5,0,'#F0D060'),
+      px(2,1,'#F0D060'), px(3,1,'#F0D060'), px(4,1,'#F0D060'), px(5,1,'#F0D060'), px(6,1,'#F0D060'),
+      px(1,2,'#F0D060'), px(2,2,e), px(3,2,'#F0D060'), px(4,2,'#F0D060'), px(5,2,e), px(6,2,'#F0D060'), px(7,2,'#F0D060'),
+      px(1,3,'#F0D060'), px(2,3,'#F0D060'), px(3,3,beak), px(4,3,beak), px(5,3,'#F0D060'), px(6,3,'#F0D060'), px(7,3,'#F0D060'),
+      px(2,4,'#F0D060'), px(3,4,'#F0D060'), px(4,4,'#F0D060'), px(5,4,'#F0D060'), px(6,4,'#F0D060'),
+      px(2,5,'#F0D060'), px(3,5,'#F0D060'), px(4,5,'#F0D060'), px(5,5,'#F0D060'), px(6,5,'#F0D060'),
+      px(2,6,'#F0D060'), px(3,6,'#F0D060'), px(4,6,'#F0D060'), px(5,6,'#F0D060'), px(6,6,'#F0D060'),
+      px(2,7,'#E0B830'), px(3,7,'#E0B830'), px(4,7,'#E0B830'), px(5,7,'#E0B830'), px(6,7,'#E0B830'),
+      px(2,8,beak), px(3,8,beak), px(5,8,beak), px(6,8,beak),
+    ].join(','), scale: 6, w: 9, h: 9 };
+  }
+  if (stage === 'teen') {
+    return { boxShadow: [
+      px(5,0,comb), px(6,0,comb), px(7,0,comb),
+      px(4,1,comb), px(5,1,comb), px(6,1,comb), px(7,1,comb), px(8,1,comb),
+      px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b),
+      px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b),
+      px(2,4,b), px(3,4,e), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,e), px(9,4,b), px(10,4,b),
+      px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,beak), px(6,5,beak), px(7,5,b), px(8,5,b), px(9,5,b), px(10,5,b),
+      px(1,6,b), px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,b), px(7,6,b), px(8,6,b), px(9,6,b), px(10,6,b), px(11,6,b),
+      px(3,7,b), px(4,7,b), px(5,7,b), px(6,7,b), px(7,7,b), px(8,7,b), px(9,7,b),
+      px(3,8,d), px(4,8,d), px(5,8,d), px(6,8,d), px(7,8,d), px(8,8,d), px(9,8,d),
+      px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+      px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+      px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d),
+      px(3,12,beak), px(4,12,beak), px(6,12,beak), px(8,12,beak), px(9,12,beak),
+    ].join(','), scale: 6, w: 13, h: 13 };
+  }
+  return { boxShadow: [
+    px(6,0,comb), px(7,0,comb), px(8,0,comb), px(9,0,comb),
+    px(5,1,comb), px(6,1,comb), px(7,1,comb), px(8,1,comb), px(9,1,comb), px(10,1,comb),
+    px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b),
+    px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b), px(12,3,b),
+    px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,b), px(11,4,b), px(12,4,b),
+    px(2,5,b), px(3,5,b), px(4,5,e), px(5,5,b), px(6,5,b), px(7,5,b), px(8,5,b), px(9,5,b), px(10,5,e), px(11,5,b), px(12,5,b), px(13,5,b),
+    px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,b), px(7,6,beak), px(8,6,beak), px(9,6,b), px(10,6,b), px(11,6,b), px(12,6,b), px(13,6,b),
+    px(1,7,b), px(2,7,b), px(3,7,b), px(4,7,b), px(5,7,b), px(6,7,b), px(7,7,b), px(8,7,b), px(9,7,b), px(10,7,b), px(11,7,b), px(12,7,b), px(13,7,b), px(14,7,b),
+    px(1,8,b), px(2,8,b), px(3,8,b), px(4,8,b), px(5,8,b), px(6,8,b), px(7,8,b), px(8,8,b), px(9,8,b), px(10,8,b), px(11,8,b), px(12,8,b), px(13,8,b), px(14,8,b),
+    px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d), px(10,9,d), px(11,9,d), px(12,9,d),
+    px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d), px(10,10,d), px(11,10,d), px(12,10,d),
+    px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d),
+    px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d),
+    px(4,13,d), px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d), px(11,13,d),
+    px(4,14,d), px(5,14,d), px(6,14,d), px(7,14,d), px(8,14,d), px(9,14,d), px(10,14,d), px(11,14,d),
+    px(3,15,beak), px(4,15,beak), px(5,15,beak), px(7,15,beak), px(10,15,beak), px(11,15,beak), px(12,15,beak),
+  ].join(','), scale: 5, w: 16, h: 16 };
+}
+
+function getOwlSprite(b, d, l, e, n, w, stage) {
+  const beak = '#E8A317';
+  if (stage === 'baby') {
+    return { boxShadow: [
+      px(1,0,b), px(2,0,b), px(3,0,b), px(4,0,b), px(5,0,b), px(6,0,b), px(7,0,b),
+      px(0,1,b), px(1,1,b), px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b),
+      px(0,2,b), px(1,2,w), px(2,2,e), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,w), px(7,2,e), px(8,2,b),
+      px(0,3,b), px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,beak), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b),
+      px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b),
+      px(1,5,d), px(2,5,l), px(3,5,l), px(4,5,l), px(5,5,l), px(6,5,l), px(7,5,d),
+      px(1,6,d), px(2,6,l), px(3,6,l), px(4,6,l), px(5,6,l), px(6,6,l), px(7,6,d),
+      px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
+      px(2,8,beak), px(3,8,beak), px(5,8,beak), px(6,8,beak),
+    ].join(','), scale: 6, w: 9, h: 9 };
+  }
+  if (stage === 'teen') {
+    return { boxShadow: [
+      px(1,0,b), px(2,0,b), px(10,0,b), px(11,0,b),
+      px(1,1,b), px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b), px(9,1,b), px(10,1,b), px(11,1,b),
+      px(0,2,b), px(1,2,b), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b),
+      px(0,3,b), px(1,3,b), px(2,3,w), px(3,3,w), px(4,3,e), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,w), px(9,3,w), px(10,3,e), px(11,3,b), px(12,3,b),
+      px(0,4,b), px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,beak), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,b), px(11,4,b), px(12,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b), px(7,5,b), px(8,5,b), px(9,5,b), px(10,5,b), px(11,5,b),
+      px(0,6,d), px(1,6,d), px(2,6,d), px(3,6,l), px(4,6,l), px(5,6,l), px(6,6,l), px(7,6,l), px(8,6,l), px(9,6,l), px(10,6,d), px(11,6,d), px(12,6,d),
+      px(2,7,d), px(3,7,l), px(4,7,l), px(5,7,l), px(6,7,l), px(7,7,l), px(8,7,l), px(9,7,l), px(10,7,d),
+      px(3,8,d), px(4,8,d), px(5,8,d), px(6,8,d), px(7,8,d), px(8,8,d), px(9,8,d),
+      px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+      px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+      px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d),
+      px(3,12,beak), px(4,12,beak), px(6,12,beak), px(8,12,beak), px(9,12,beak),
+    ].join(','), scale: 6, w: 13, h: 13 };
+  }
+  return { boxShadow: [
+    px(1,0,b), px(2,0,b), px(3,0,b), px(12,0,b), px(13,0,b), px(14,0,b),
+    px(1,1,b), px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b), px(9,1,b), px(10,1,b), px(11,1,b), px(12,1,b), px(13,1,b), px(14,1,b),
+    px(0,2,b), px(1,2,b), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b), px(13,2,b), px(14,2,b), px(15,2,b),
+    px(0,3,b), px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b), px(12,3,b), px(13,3,b), px(14,3,b), px(15,3,b),
+    px(0,4,b), px(1,4,b), px(2,4,w), px(3,4,w), px(4,4,w), px(5,4,e), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,w), px(11,4,w), px(12,4,w), px(13,4,e), px(14,4,b), px(15,4,b),
+    px(0,5,b), px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b), px(7,5,beak), px(8,5,beak), px(9,5,b), px(10,5,b), px(11,5,b), px(12,5,b), px(13,5,b), px(14,5,b), px(15,5,b),
+    px(1,6,b), px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,b), px(7,6,b), px(8,6,b), px(9,6,b), px(10,6,b), px(11,6,b), px(12,6,b), px(13,6,b), px(14,6,b),
+    px(0,7,d), px(1,7,d), px(2,7,d), px(3,7,d), px(4,7,l), px(5,7,l), px(6,7,l), px(7,7,l), px(8,7,l), px(9,7,l), px(10,7,l), px(11,7,l), px(12,7,d), px(13,7,d), px(14,7,d), px(15,7,d),
+    px(1,8,d), px(2,8,d), px(3,8,d), px(4,8,l), px(5,8,l), px(6,8,l), px(7,8,l), px(8,8,l), px(9,8,l), px(10,8,l), px(11,8,l), px(12,8,d), px(13,8,d), px(14,8,d),
+    px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d), px(10,9,d), px(11,9,d), px(12,9,d),
+    px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d), px(10,10,d), px(11,10,d), px(12,10,d),
+    px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d),
+    px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d),
+    px(4,13,d), px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d), px(11,13,d),
+    px(5,14,d), px(6,14,d), px(7,14,d), px(8,14,d), px(9,14,d), px(10,14,d),
+    px(4,15,beak), px(5,15,beak), px(6,15,beak), px(9,15,beak), px(10,15,beak), px(11,15,beak),
+  ].join(','), scale: 5, w: 16, h: 16 };
+}
+
+function getPenguinSprite(b, d, l, e, n, w, stage) {
+  const belly = '#ffffff';
+  const beak = '#E8A317';
+  const feet = '#E8A317';
+  if (stage === 'baby') {
+    return { boxShadow: [
+      px(2,0,b), px(3,0,b), px(4,0,b), px(5,0,b), px(6,0,b),
+      px(1,1,b), px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b),
+      px(1,2,b), px(2,2,e), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,e), px(7,2,b),
+      px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,beak), px(5,3,b), px(6,3,b), px(7,3,b),
+      px(1,4,b), px(2,4,belly), px(3,4,belly), px(4,4,belly), px(5,4,belly), px(6,4,belly), px(7,4,b),
+      px(1,5,b), px(2,5,belly), px(3,5,belly), px(4,5,belly), px(5,5,belly), px(6,5,belly), px(7,5,b),
+      px(2,6,b), px(3,6,belly), px(4,6,belly), px(5,6,belly), px(6,6,b),
+      px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
+      px(1,8,feet), px(2,8,feet), px(3,8,feet), px(5,8,feet), px(6,8,feet), px(7,8,feet),
+    ].join(','), scale: 6, w: 9, h: 9 };
+  }
+  if (stage === 'teen') {
+    return { boxShadow: [
+      px(3,0,b), px(4,0,b), px(5,0,b), px(6,0,b), px(7,0,b), px(8,0,b), px(9,0,b),
+      px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b), px(9,1,b), px(10,1,b),
+      px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b),
+      px(1,3,b), px(2,3,b), px(3,3,w), px(4,3,e), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,w), px(9,3,e), px(10,3,b), px(11,3,b),
+      px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,beak), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,b), px(11,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,belly), px(4,5,belly), px(5,5,belly), px(6,5,belly), px(7,5,belly), px(8,5,belly), px(9,5,belly), px(10,5,b), px(11,5,b),
+      px(0,6,b), px(1,6,b), px(2,6,b), px(3,6,belly), px(4,6,belly), px(5,6,belly), px(6,6,belly), px(7,6,belly), px(8,6,belly), px(9,6,belly), px(10,6,b), px(11,6,b), px(12,6,b),
+      px(1,7,b), px(2,7,b), px(3,7,belly), px(4,7,belly), px(5,7,belly), px(6,7,belly), px(7,7,belly), px(8,7,belly), px(9,7,belly), px(10,7,b), px(11,7,b),
+      px(2,8,b), px(3,8,b), px(4,8,belly), px(5,8,belly), px(6,8,belly), px(7,8,belly), px(8,8,belly), px(9,8,b), px(10,8,b),
+      px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+      px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+      px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d),
+      px(2,12,feet), px(3,12,feet), px(4,12,feet), px(5,12,feet), px(7,12,feet), px(8,12,feet), px(9,12,feet), px(10,12,feet),
+    ].join(','), scale: 6, w: 13, h: 13 };
+  }
+  return { boxShadow: [
+    px(4,0,b), px(5,0,b), px(6,0,b), px(7,0,b), px(8,0,b), px(9,0,b), px(10,0,b), px(11,0,b),
+    px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b), px(9,1,b), px(10,1,b), px(11,1,b), px(12,1,b),
+    px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b),
+    px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b), px(12,3,b), px(13,3,b),
+    px(2,4,b), px(3,4,b), px(4,4,w), px(5,4,w), px(6,4,e), px(7,4,b), px(8,4,b), px(9,4,w), px(10,4,w), px(11,4,e), px(12,4,b), px(13,4,b),
+    px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b), px(7,5,beak), px(8,5,beak), px(9,5,b), px(10,5,b), px(11,5,b), px(12,5,b), px(13,5,b),
+    px(2,6,b), px(3,6,b), px(4,6,belly), px(5,6,belly), px(6,6,belly), px(7,6,belly), px(8,6,belly), px(9,6,belly), px(10,6,belly), px(11,6,belly), px(12,6,b), px(13,6,b),
+    px(1,7,b), px(2,7,b), px(3,7,b), px(4,7,belly), px(5,7,belly), px(6,7,belly), px(7,7,belly), px(8,7,belly), px(9,7,belly), px(10,7,belly), px(11,7,belly), px(12,7,b), px(13,7,b), px(14,7,b),
+    px(0,8,b), px(1,8,b), px(2,8,b), px(3,8,b), px(4,8,belly), px(5,8,belly), px(6,8,belly), px(7,8,belly), px(8,8,belly), px(9,8,belly), px(10,8,belly), px(11,8,belly), px(12,8,b), px(13,8,b), px(14,8,b), px(15,8,b),
+    px(1,9,b), px(2,9,b), px(3,9,b), px(4,9,belly), px(5,9,belly), px(6,9,belly), px(7,9,belly), px(8,9,belly), px(9,9,belly), px(10,9,belly), px(11,9,belly), px(12,9,b), px(13,9,b), px(14,9,b),
+    px(3,10,b), px(4,10,b), px(5,10,belly), px(6,10,belly), px(7,10,belly), px(8,10,belly), px(9,10,belly), px(10,10,belly), px(11,10,b), px(12,10,b),
+    px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d),
+    px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d),
+    px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d),
+    px(5,14,d), px(6,14,d), px(7,14,d), px(8,14,d), px(9,14,d), px(10,14,d),
+    px(3,15,feet), px(4,15,feet), px(5,15,feet), px(6,15,feet), px(9,15,feet), px(10,15,feet), px(11,15,feet), px(12,15,feet),
+  ].join(','), scale: 5, w: 16, h: 16 };
+}
+
+function getDuckSprite(b, d, l, e, n, w, stage) {
+  const beak = '#E8A317';
+  const feet = '#E8A317';
+  if (stage === 'baby') {
+    return { boxShadow: [
+      px(2,0,b), px(3,0,b), px(4,0,b), px(5,0,b), px(6,0,b),
+      px(1,1,b), px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b),
+      px(1,2,b), px(2,2,e), px(3,2,b), px(4,2,b), px(5,2,e), px(6,2,b), px(7,2,b),
+      px(1,3,b), px(2,3,b), px(3,3,beak), px(4,3,beak), px(5,3,beak), px(6,3,b), px(7,3,b),
+      px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b),
+      px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b),
+      px(2,6,d), px(3,6,d), px(4,6,d), px(5,6,d), px(6,6,d),
+      px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
+      px(1,8,feet), px(2,8,feet), px(3,8,feet), px(5,8,feet), px(6,8,feet), px(7,8,feet),
+    ].join(','), scale: 6, w: 9, h: 9 };
+  }
+  if (stage === 'teen') {
+    return { boxShadow: [
+      px(3,0,b), px(4,0,b), px(5,0,b), px(6,0,b), px(7,0,b), px(8,0,b), px(9,0,b),
+      px(2,1,b), px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b), px(9,1,b), px(10,1,b),
+      px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b),
+      px(1,3,b), px(2,3,b), px(3,3,w), px(4,3,e), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,w), px(9,3,e), px(10,3,b), px(11,3,b),
+      px(1,4,b), px(2,4,b), px(3,4,b), px(4,4,beak), px(5,4,beak), px(6,4,beak), px(7,4,beak), px(8,4,b), px(9,4,b), px(10,4,b), px(11,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,b), px(7,5,b), px(8,5,b), px(9,5,b), px(10,5,b), px(11,5,b),
+      px(0,6,b), px(1,6,b), px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,b), px(7,6,b), px(8,6,b), px(9,6,b), px(10,6,b), px(11,6,b), px(12,6,b),
+      px(2,7,b), px(3,7,b), px(4,7,b), px(5,7,b), px(6,7,b), px(7,7,b), px(8,7,b), px(9,7,b), px(10,7,b),
+      px(3,8,d), px(4,8,d), px(5,8,d), px(6,8,d), px(7,8,d), px(8,8,d), px(9,8,d),
+      px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+      px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+      px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d),
+      px(2,12,feet), px(3,12,feet), px(4,12,feet), px(5,12,feet), px(7,12,feet), px(8,12,feet), px(9,12,feet), px(10,12,feet),
+    ].join(','), scale: 6, w: 13, h: 13 };
+  }
+  return { boxShadow: [
+    px(4,0,b), px(5,0,b), px(6,0,b), px(7,0,b), px(8,0,b), px(9,0,b), px(10,0,b), px(11,0,b),
+    px(3,1,b), px(4,1,b), px(5,1,b), px(6,1,b), px(7,1,b), px(8,1,b), px(9,1,b), px(10,1,b), px(11,1,b), px(12,1,b),
+    px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b),
+    px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b), px(12,3,b), px(13,3,b),
+    px(2,4,b), px(3,4,b), px(4,4,w), px(5,4,w), px(6,4,e), px(7,4,b), px(8,4,b), px(9,4,w), px(10,4,w), px(11,4,e), px(12,4,b), px(13,4,b),
+    px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,beak), px(6,5,beak), px(7,5,beak), px(8,5,beak), px(9,5,beak), px(10,5,b), px(11,5,b), px(12,5,b), px(13,5,b),
+    px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,b), px(6,6,b), px(7,6,b), px(8,6,b), px(9,6,b), px(10,6,b), px(11,6,b), px(12,6,b), px(13,6,b),
+    px(1,7,b), px(2,7,b), px(3,7,b), px(4,7,b), px(5,7,b), px(6,7,b), px(7,7,b), px(8,7,b), px(9,7,b), px(10,7,b), px(11,7,b), px(12,7,b), px(13,7,b), px(14,7,b),
+    px(0,8,b), px(1,8,b), px(2,8,b), px(3,8,b), px(4,8,b), px(5,8,b), px(6,8,b), px(7,8,b), px(8,8,b), px(9,8,b), px(10,8,b), px(11,8,b), px(12,8,b), px(13,8,b), px(14,8,b), px(15,8,b),
+    px(2,9,b), px(3,9,b), px(4,9,b), px(5,9,b), px(6,9,b), px(7,9,b), px(8,9,b), px(9,9,b), px(10,9,b), px(11,9,b), px(12,9,b), px(13,9,b),
+    px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d), px(10,10,d), px(11,10,d),
+    px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d),
+    px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d),
+    px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d),
+    px(5,14,d), px(6,14,d), px(7,14,d), px(8,14,d), px(9,14,d), px(10,14,d),
+    px(3,15,feet), px(4,15,feet), px(5,15,feet), px(6,15,feet), px(9,15,feet), px(10,15,feet), px(11,15,feet), px(12,15,feet),
+  ].join(','), scale: 5, w: 16, h: 16 };
+}
+
+function getWolfSprite(b, d, l, e, n, w, stage) {
+  // Wolf is like a bigger, pointier dog
+  if (stage === 'baby') {
+    return { boxShadow: [
+      px(0,0,b), px(8,0,b),
+      px(0,1,b), px(1,1,b), px(7,1,b), px(8,1,b),
+      px(0,2,b), px(1,2,l), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,l), px(8,2,b),
+      px(1,3,b), px(2,3,e), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,e), px(7,3,b),
+      px(1,4,b), px(2,4,b), px(3,4,l), px(4,4,e), px(5,4,l), px(6,4,b), px(7,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,l), px(4,5,l), px(5,5,l), px(6,5,b), px(7,5,b),
+      px(2,6,d), px(3,6,d), px(4,6,d), px(5,6,d), px(6,6,d),
+      px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
+      px(2,8,d), px(3,8,d), px(5,8,d), px(6,8,d),
+    ].join(','), scale: 6, w: 9, h: 9 };
+  }
+  if (stage === 'teen') {
+    return { boxShadow: [
+      px(0,0,b), px(12,0,b),
+      px(0,1,b), px(1,1,b), px(11,1,b), px(12,1,b),
+      px(0,2,b), px(1,2,l), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,l), px(12,2,b),
+      px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b),
+      px(1,4,b), px(2,4,w), px(3,4,e), px(4,4,b), px(5,4,b), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,w), px(10,4,e), px(11,4,b),
+      px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,l), px(5,5,l), px(6,5,e), px(7,5,l), px(8,5,l), px(9,5,b), px(10,5,b), px(11,5,b),
+      px(2,6,b), px(3,6,b), px(4,6,l), px(5,6,l), px(6,6,l), px(7,6,l), px(8,6,l), px(9,6,b), px(10,6,b),
+      px(2,7,b), px(3,7,l), px(4,7,l), px(5,7,l), px(6,7,l), px(7,7,l), px(8,7,l), px(9,7,l), px(10,7,b),
+      px(3,8,d), px(4,8,d), px(5,8,d), px(6,8,d), px(7,8,d), px(8,8,d), px(9,8,d),
+      px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d),
+      px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d),
+      px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d),
+      px(3,12,d), px(4,12,d), px(6,12,d), px(8,12,d), px(9,12,d), px(12,12,d),
+    ].join(','), scale: 6, w: 13, h: 13 };
+  }
+  return { boxShadow: [
+    px(0,0,b), px(1,0,b), px(14,0,b), px(15,0,b),
+    px(0,1,b), px(1,1,b), px(2,1,b), px(13,1,b), px(14,1,b), px(15,1,b),
+    px(0,2,b), px(1,2,l), px(2,2,b), px(3,2,b), px(4,2,b), px(5,2,b), px(6,2,b), px(7,2,b), px(8,2,b), px(9,2,b), px(10,2,b), px(11,2,b), px(12,2,b), px(13,2,b), px(14,2,l), px(15,2,b),
+    px(1,3,b), px(2,3,b), px(3,3,b), px(4,3,b), px(5,3,b), px(6,3,b), px(7,3,b), px(8,3,b), px(9,3,b), px(10,3,b), px(11,3,b), px(12,3,b), px(13,3,b), px(14,3,b),
+    px(1,4,b), px(2,4,b), px(3,4,w), px(4,4,w), px(5,4,e), px(6,4,b), px(7,4,b), px(8,4,b), px(9,4,b), px(10,4,w), px(11,4,w), px(12,4,e), px(13,4,b), px(14,4,b),
+    px(1,5,b), px(2,5,b), px(3,5,b), px(4,5,b), px(5,5,b), px(6,5,l), px(7,5,l), px(8,5,e), px(9,5,l), px(10,5,l), px(11,5,b), px(12,5,b), px(13,5,b), px(14,5,b),
+    px(2,6,b), px(3,6,b), px(4,6,b), px(5,6,l), px(6,6,l), px(7,6,l), px(8,6,l), px(9,6,l), px(10,6,l), px(11,6,b), px(12,6,b), px(13,6,b),
+    px(2,7,b), px(3,7,b), px(4,7,l), px(5,7,l), px(6,7,l), px(7,7,l), px(8,7,l), px(9,7,l), px(10,7,l), px(11,7,l), px(12,7,b), px(13,7,b),
+    px(3,8,d), px(4,8,d), px(5,8,d), px(6,8,d), px(7,8,d), px(8,8,d), px(9,8,d), px(10,8,d), px(11,8,d), px(12,8,d),
+    px(3,9,d), px(4,9,d), px(5,9,d), px(6,9,d), px(7,9,d), px(8,9,d), px(9,9,d), px(10,9,d), px(11,9,d), px(12,9,d),
+    px(3,10,d), px(4,10,d), px(5,10,d), px(6,10,d), px(7,10,d), px(8,10,d), px(9,10,d), px(10,10,d), px(11,10,d), px(12,10,d),
+    px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d), px(12,11,d),
+    px(3,12,d), px(4,12,d), px(5,12,d), px(6,12,d), px(7,12,d), px(8,12,d), px(9,12,d), px(10,12,d), px(11,12,d), px(12,12,d), px(13,12,d),
+    px(3,13,d), px(4,13,d), px(5,13,d), px(6,13,d), px(7,13,d), px(8,13,d), px(9,13,d), px(10,13,d), px(11,13,d), px(12,13,d), px(13,13,d), px(14,13,d),
+    px(3,14,d), px(4,14,d), px(5,14,d), px(7,14,d), px(9,14,d), px(10,14,d), px(11,14,d), px(14,14,d), px(15,14,d),
+    px(3,15,d), px(4,15,d), px(7,15,d), px(10,15,d), px(11,15,d),
+  ].join(','), scale: 5, w: 16, h: 16 };
+}
+
+// ── Apply a sprite to a DOM element ───────────────────
+function applySprite(el, animalType, color, stage) {
+  const sprite = getSprite(animalType, color, stage);
+  el.style.width = '1px';
+  el.style.height = '1px';
+  el.style.background = 'transparent';
+  el.style.boxShadow = sprite.boxShadow;
+  el.style.transform = 'scale(' + sprite.scale + ')';
+  el.style.imageRendering = 'pixelated';
+  // Set margin so the scaled sprite has room
+  const marginX = (sprite.w * sprite.scale) / 2;
+  const marginY = (sprite.h * sprite.scale) / 2;
+  el.style.margin = marginY + 'px ' + marginX + 'px';
+}
+
+// ═══════════════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════════════
+
+let gameState = {
+  pets: [],           // array of pet objects
+  selectedPetId: null, // which pet is currently selected
+  isWalking: false,
+  walkCooldownEnd: 0,
+};
+
+let nextPetId = 1;
+
+// ═══════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ═══════════════════════════════════════════════════════
+
+const pickScreen   = document.getElementById('pick-screen');
+const colorScreen  = document.getElementById('color-screen');
+const nameScreen   = document.getElementById('name-screen');
+const gameScreen   = document.getElementById('game-screen');
+
+let chosenAnimalType = null;
+let chosenColor = null;
+
+// ── Build the animal picker grid ──────────────────────
+function buildAnimalGrid() {
+  const grid = document.getElementById('animal-grid');
+  grid.innerHTML = '';
+
+  const animalTypes = Object.keys(ANIMALS);
+  animalTypes.forEach(type => {
+    const animal = ANIMALS[type];
+    const card = document.createElement('div');
+    card.className = 'animal-card';
+
+    // Create a preview sprite using the first color option
+    const preview = document.createElement('div');
+    preview.className = 'preview';
+    const spriteEl = document.createElement('div');
+    spriteEl.className = 'pet-sprite';
+    applySprite(spriteEl, type, animal.colors[0], 'adult');
+    preview.appendChild(spriteEl);
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'name';
+    nameEl.textContent = animal.name;
+
+    card.appendChild(preview);
+    card.appendChild(nameEl);
+
+    card.addEventListener('click', function() {
+      chosenAnimalType = type;
+      showColorScreen();
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+// ── Show the color picker screen ──────────────────────
+function showColorScreen() {
+  pickScreen.classList.add('hidden');
+  colorScreen.classList.remove('hidden');
+
+  const animal = ANIMALS[chosenAnimalType];
+  document.getElementById('color-subtitle').textContent =
+    'Choose a color for your ' + animal.name.toLowerCase();
+
+  const container = document.getElementById('color-options');
+  container.innerHTML = '';
+
+  animal.colors.forEach(color => {
+    const card = document.createElement('div');
+    card.className = 'color-card';
+
+    const swatch = document.createElement('div');
+    swatch.className = 'swatch';
+    swatch.style.background = color.base;
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'name';
+    nameEl.textContent = color.name;
+
+    card.appendChild(swatch);
+    card.appendChild(nameEl);
+
+    card.addEventListener('click', function() {
+      chosenColor = color;
+      showNameScreen();
+    });
+
+    container.appendChild(card);
+  });
+}
+
+// ── Show the name your pet screen ─────────────────────
+function showNameScreen() {
+  colorScreen.classList.add('hidden');
+  nameScreen.classList.remove('hidden');
+
+  const animal = ANIMALS[chosenAnimalType];
+  document.getElementById('name-subtitle').textContent =
+    'What will you call your ' + chosenColor.name.toLowerCase() + ' ' + animal.name.toLowerCase() + '?';
+
+  // Show a preview of the chosen pet
+  const preview = document.getElementById('name-preview');
+  preview.innerHTML = '';
+  const spriteEl = document.createElement('div');
+  spriteEl.className = 'pet-sprite';
+  applySprite(spriteEl, chosenAnimalType, chosenColor, 'adult');
+  preview.appendChild(spriteEl);
+
+  // Focus the name input
+  const input = document.getElementById('name-input');
+  input.value = '';
+  input.focus();
+}
+
+// ── Start the game with the chosen pet ────────────────
+function startGame(petName) {
+  nameScreen.classList.add('hidden');
+  gameScreen.classList.remove('hidden');
+
+  // Create the first pet!
+  const pet = {
+    id: nextPetId++,
+    name: petName,
+    type: chosenAnimalType,
+    color: chosenColor,
+    stage: 'baby',        // starts as a baby!
+    bornAt: Date.now(),
+    hunger: 100,
+    happiness: 100,
+    energy: 100,
+    xp: 0,
+    level: 1,
+    alive: true,
+    eggCount: 0,          // for chickens
+    stageUpAt: Date.now() + 5 * 60 * 1000,  // teen at 5 minutes
+    adultAt: Date.now() + 6 * 60 * 1000,    // adult at 6 minutes
+    x: Math.random() * 60 + 20, // percentage position
+    y: Math.random() * 40 + 20,
+  };
+
+  gameState.pets.push(pet);
+  gameState.selectedPetId = pet.id;
+
+  renderPets();
+  startGameLoop();
+}
+
+// ── Name button click ─────────────────────────────────
+document.getElementById('name-btn').addEventListener('click', function() {
+  const name = document.getElementById('name-input').value.trim();
+  if (name.length === 0) return;
+  startGame(name);
+});
+
+// Also allow pressing Enter to submit the name
+document.getElementById('name-input').addEventListener('keydown', function(ev) {
+  if (ev.key === 'Enter') {
+    document.getElementById('name-btn').click();
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+// GAME RENDERING
+// ═══════════════════════════════════════════════════════
+
+function renderPets() {
+  const area = document.getElementById('pet-area');
+  area.innerHTML = '';
+
+  gameState.pets.forEach(pet => {
+    if (!pet.alive) return;
+
+    const petEl = document.createElement('div');
+    petEl.className = 'pet';
+    petEl.style.left = pet.x + '%';
+    petEl.style.top = pet.y + '%';
+
+    // Label: "Name - Lv.X XP/20"
+    const label = document.createElement('div');
+    label.className = 'pet-label';
+    label.textContent = pet.name + ' - Lv.' + pet.level + ' ' + pet.xp + '/20';
+
+    // Mini stat bars
+    const bars = document.createElement('div');
+    bars.className = 'pet-mini-bars';
+
+    ['hunger', 'happiness', 'energy'].forEach((stat, i) => {
+      const bg = document.createElement('div');
+      bg.className = 'pet-mini-bar-bg';
+      const fill = document.createElement('div');
+      fill.className = 'pet-mini-bar-fill ' + ['hunger', 'happy', 'energy'][i];
+      fill.style.width = pet[stat] + '%';
+      bg.appendChild(fill);
+      bars.appendChild(bg);
+    });
+
+    // Sprite
+    const sprite = document.createElement('div');
+    sprite.className = 'pet-sprite';
+    applySprite(sprite, pet.type, pet.color, pet.stage);
+
+    petEl.appendChild(label);
+    petEl.appendChild(bars);
+    petEl.appendChild(sprite);
+
+    // Click to select this pet
+    petEl.addEventListener('click', function(ev) {
+      ev.stopPropagation();
+      gameState.selectedPetId = pet.id;
+      openSidePanel(pet);
+    });
+
+    area.appendChild(petEl);
+  });
+}
+
+// ── Side panel ────────────────────────────────────────
+const sidePanel = document.getElementById('side-panel');
+
+function openSidePanel(pet) {
+  document.getElementById('panel-name').textContent =
+    pet.name + ' - Lv.' + pet.level;
+
+  updateSidePanelBars(pet);
+
+  // Determine which side to open from
+  // If pet is walking right (on right side), panel opens on left
+  sidePanel.classList.remove('from-left', 'from-right');
+  if (pet.x > 50) {
+    sidePanel.classList.add('from-left');
+  } else {
+    sidePanel.classList.add('from-right');
+  }
+  sidePanel.classList.add('open');
+}
+
+function updateSidePanelBars(pet) {
+  ['hunger', 'happy', 'energy'].forEach(stat => {
+    const val = stat === 'happy' ? pet.happiness : pet[stat];
+    const bar = document.getElementById('panel-' + stat);
+    bar.style.width = val + '%';
+
+    bar.className = 'stat-bar-fill';
+    if (val > 60) bar.classList.add('high');
+    else if (val > 30) bar.classList.add('medium');
+    else bar.classList.add('low');
+    if (val < 20) bar.classList.add('critical');
+  });
+}
+
+function closeSidePanel() {
+  sidePanel.classList.remove('open');
+}
+
+// Click anywhere on game area to close side panel
+document.getElementById('pet-area').addEventListener('click', function() {
+  closeSidePanel();
+});
+
+// ═══════════════════════════════════════════════════════
+// GAME LOOP
+// ═══════════════════════════════════════════════════════
+
+let gameLoopInterval = null;
+
+function startGameLoop() {
+  // Run every second
+  gameLoopInterval = setInterval(function() {
+    const now = Date.now();
+
+    gameState.pets.forEach(pet => {
+      if (!pet.alive) return;
+
+      // Check for stage growth
+      if (pet.stage === 'baby' && now >= pet.stageUpAt) {
+        pet.stage = 'teen';
+      }
+      if (pet.stage === 'teen' && now >= pet.adultAt) {
+        pet.stage = 'adult';
+      }
+
+      // Check for death by old age
+      const maxLv = ANIMALS[pet.type].maxLevel;
+      if (pet.level >= maxLv + 2) {
+        petDied(pet);
+        return;
+      }
+
+      // Don't decay baby stats
+      if (pet.stage === 'baby') return;
+
+      // Stat decay (check every tick — decay rates are per 30s/45s)
+      // We decay 1 point every second proportionally
+      pet.hunger = Math.max(0, pet.hunger - (2 / 120));     // -2 per 2 minutes
+      pet.happiness = Math.max(0, pet.happiness - (1 / 120)); // -1 per 2 minutes
+      pet.energy = Math.max(0, pet.energy - (1 / 180));      // -1 per 3 minutes
+
+      // Faint check
+      if (pet.hunger <= 0 || pet.happiness <= 0 || pet.energy <= 0) {
+        showPopup(
+          pet.name + ' fainted!',
+          'Oh no! ' + pet.name + ' needs help!',
+          [{ text: 'WAKE UP', action: function() { revivePet(pet); closePopup(); } }]
+        );
+      }
+    });
+
+    renderPets();
+
+    // Update side panel if open
+    if (sidePanel.classList.contains('open') && gameState.selectedPetId) {
+      const selected = gameState.pets.find(p => p.id === gameState.selectedPetId);
+      if (selected) updateSidePanelBars(selected);
+    }
+  }, 1000);
+}
+
+function revivePet(pet) {
+  pet.hunger = 50;
+  pet.happiness = 50;
+  pet.energy = 50;
+}
+
+function petDied(pet) {
+  pet.alive = false;
+  showPopup(
+    'Goodbye, ' + pet.name,
+    pet.name + ' lived a happy life at level ' + pet.level + '. You gave them a wonderful home.',
+    [{ text: 'OK', action: closePopup }]
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// ACTION BUTTONS
+// ═══════════════════════════════════════════════════════
+
+function getSelectedPet() {
+  if (!gameState.selectedPetId) return null;
+  return gameState.pets.find(p => p.id === gameState.selectedPetId && p.alive);
+}
+
+function showNoPetPopup() {
+  showPopup('Oops!', 'Click a pet first!', [{ text: 'OK', action: closePopup }]);
+}
+
+// Feed button
+document.getElementById('btn-feed').addEventListener('click', function() {
+  const pet = getSelectedPet();
+  if (!pet) return showNoPetPopup();
+
+  const btn = this;
+  if (btn.disabled) return;
+
+  pet.hunger = Math.min(100, pet.hunger + 20);
+  pet.xp += 2;
+  checkLevelUp(pet);
+  renderPets();
+
+  // 3 second cooldown
+  btn.disabled = true;
+  animateCooldown('cd-feed', 3000);
+  setTimeout(function() { btn.disabled = false; }, 3000);
+});
+
+// Play button
+document.getElementById('btn-play').addEventListener('click', function() {
+  const pet = getSelectedPet();
+  if (!pet) return showNoPetPopup();
+
+  const btn = this;
+  if (btn.disabled) return;
+
+  pet.happiness = Math.min(100, pet.happiness + 15);
+  pet.xp += 2;
+  checkLevelUp(pet);
+  renderPets();
+
+  // 5 second cooldown
+  btn.disabled = true;
+  animateCooldown('cd-play', 5000);
+  setTimeout(function() { btn.disabled = false; }, 5000);
+});
+
+// Sleep button
+document.getElementById('btn-sleep').addEventListener('click', function() {
+  const pet = getSelectedPet();
+  if (!pet) return showNoPetPopup();
+
+  const btn = this;
+  if (btn.disabled) return;
+
+  pet.energy = Math.min(100, pet.energy + 25);
+  renderPets();
+
+  // 5 second cooldown (pet sleeps for 5s)
+  btn.disabled = true;
+  animateCooldown('cd-sleep', 5000);
+  setTimeout(function() { btn.disabled = false; }, 5000);
+});
+
+// Walk button
+document.getElementById('btn-walk').addEventListener('click', function() {
+  const pet = getSelectedPet();
+  if (!pet) return showNoPetPopup();
+
+  const btn = this;
+  const now = Date.now();
+
+  if (gameState.isWalking) {
+    // Stop walking
+    gameState.isWalking = false;
+    btn.innerHTML = '<span class="cooldown-bar" id="cd-walk"></span>WALK YOUR PET';
+    gameState.walkCooldownEnd = now + 3 * 60 * 1000;
+
+    // Walk cooldown (3 minutes)
+    btn.disabled = true;
+    animateCooldown('cd-walk', 3 * 60 * 1000);
+    setTimeout(function() { btn.disabled = false; }, 3 * 60 * 1000);
+
+    // Give XP for walking
+    pet.xp += 3;
+    checkLevelUp(pet);
+    renderPets();
+    return;
+  }
+
+  // Check walk cooldown
+  if (now < gameState.walkCooldownEnd) return;
+
+  // Start walking!
+  gameState.isWalking = true;
+  btn.innerHTML = '<span class="cooldown-bar" id="cd-walk"></span>STOP WALKING';
+});
+
+// ── Cooldown bar animation ────────────────────────────
+function animateCooldown(barId, duration) {
+  const bar = document.getElementById(barId);
+  if (!bar) return;
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  // Force reflow
+  bar.offsetHeight;
+  bar.style.transition = 'width ' + duration + 'ms linear';
+  bar.style.width = '0%';
+}
+
+// ── Level up check ────────────────────────────────────
+function checkLevelUp(pet) {
+  while (pet.xp >= 20) {
+    pet.xp -= 20;
+    pet.level++;
+
+    // Check if baby unlocks at level 5
+    if (pet.level === 5 && pet.stage === 'adult') {
+      // Will prompt for baby later in game loop
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// POPUP SYSTEM
+// ═══════════════════════════════════════════════════════
+
+function showPopup(title, message, buttons) {
+  const container = document.getElementById('popup-container');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'popup-overlay';
+
+  const popup = document.createElement('div');
+  popup.className = 'popup';
+
+  const h2 = document.createElement('h2');
+  h2.textContent = title;
+
+  const p = document.createElement('p');
+  p.textContent = message;
+
+  popup.appendChild(h2);
+  popup.appendChild(p);
+
+  if (buttons && buttons.length > 0) {
+    const btnRow = document.createElement('div');
+    btnRow.className = 'popup-btns';
+
+    buttons.forEach(function(btnDef, i) {
+      const btn = document.createElement('button');
+      btn.className = 'popup-btn' + (i > 0 ? ' pink' : '');
+      btn.textContent = btnDef.text;
+      btn.addEventListener('click', btnDef.action);
+      btnRow.appendChild(btn);
+    });
+
+    popup.appendChild(btnRow);
+  }
+
+  overlay.appendChild(popup);
+  container.appendChild(overlay);
+}
+
+function closePopup() {
+  const container = document.getElementById('popup-container');
+  if (container.lastChild) {
+    container.removeChild(container.lastChild);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PET FOLLOWS MOUSE / FINGER
+// ═══════════════════════════════════════════════════════
+
+// Track where the mouse or finger is
+let mouseX = 50; // percentage of pet-area width
+let mouseY = 50; // percentage of pet-area height
+
+document.addEventListener('mousemove', function(ev) {
+  const area = document.getElementById('pet-area');
+  if (!area) return;
+  const rect = area.getBoundingClientRect();
+  mouseX = ((ev.clientX - rect.left) / rect.width) * 100;
+  mouseY = ((ev.clientY - rect.top) / rect.height) * 100;
+  // Keep in bounds
+  mouseX = Math.max(5, Math.min(95, mouseX));
+  mouseY = Math.max(5, Math.min(85, mouseY));
+});
+
+// Touch support for phones
+document.addEventListener('touchmove', function(ev) {
+  const area = document.getElementById('pet-area');
+  if (!area) return;
+  const rect = area.getBoundingClientRect();
+  const touch = ev.touches[0];
+  mouseX = ((touch.clientX - rect.left) / rect.width) * 100;
+  mouseY = ((touch.clientY - rect.top) / rect.height) * 100;
+  mouseX = Math.max(5, Math.min(95, mouseX));
+  mouseY = Math.max(5, Math.min(85, mouseY));
+});
+
+// Move pets toward the mouse/finger smoothly every frame
+function movePetsTowardMouse() {
+  gameState.pets.forEach(pet => {
+    if (!pet.alive) return;
+
+    // How fast the pet moves (smaller = slower, more chill)
+    const speed = 0.03;
+
+    // Move toward the mouse position
+    const dx = mouseX - pet.x;
+    const dy = mouseY - pet.y;
+
+    // Only move if not super close already
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+      pet.x += dx * speed;
+      pet.y += dy * speed;
+    }
+  });
+
+  // Update pet positions on screen without full re-render
+  const petEls = document.querySelectorAll('#pet-area .pet');
+  const alivePets = gameState.pets.filter(p => p.alive);
+  petEls.forEach((el, i) => {
+    if (alivePets[i]) {
+      el.style.left = alivePets[i].x + '%';
+      el.style.top = alivePets[i].y + '%';
+    }
+  });
+
+  requestAnimationFrame(movePetsTowardMouse);
+}
+
+// Start the animation loop when game screen is visible
+requestAnimationFrame(movePetsTowardMouse);
+
+// ═══════════════════════════════════════════════════════
+// SIZE SLIDER
+// ═══════════════════════════════════════════════════════
+
+const sizeSlider = document.getElementById('size-slider');
+if (sizeSlider) {
+  const petArea = document.getElementById('pet-area');
+  sizeSlider.addEventListener('input', function() {
+    const pct = Number(this.value) / 100;
+    const scale = 1 + pct * 0.8; // scale from 1.0 to 1.8
+    petArea.style.transform = 'scale(' + scale + ')';
+    petArea.style.transformOrigin = 'top center';
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// LOCALSTORAGE SAVE/LOAD
+// ═══════════════════════════════════════════════════════
+
+function saveGame() {
+  const data = {
+    pets: gameState.pets,
+    selectedPetId: gameState.selectedPetId,
+    walkCooldownEnd: gameState.walkCooldownEnd,
+    nextPetId: nextPetId,
+  };
+  localStorage.setItem('pixelPetSave', JSON.stringify(data));
+}
+
+function loadGame() {
+  const raw = localStorage.getItem('pixelPetSave');
+  if (!raw) return false;
+
+  try {
+    const data = JSON.parse(raw);
+    gameState.pets = data.pets || [];
+    gameState.selectedPetId = data.selectedPetId || null;
+    gameState.walkCooldownEnd = data.walkCooldownEnd || 0;
+    nextPetId = data.nextPetId || 1;
+
+    // Apply offline decay (capped at -50 per stat)
+    const now = Date.now();
+    gameState.pets.forEach(pet => {
+      if (!pet.alive || pet.stage === 'baby') return;
+
+      // We don't know exact time away, but we saved every 5s
+      // so the difference from last save approximates offline time
+      // For now, just cap at -50 so pet doesn't die while you're away
+      pet.hunger = Math.max(pet.hunger - 50, 0);
+      pet.happiness = Math.max(pet.happiness - 50, 0);
+      pet.energy = Math.max(pet.energy - 50, 0);
+    });
+
+    return gameState.pets.length > 0;
+  } catch(e) {
+    return false;
+  }
+}
+
+// Auto-save every 5 seconds
+setInterval(saveGame, 5000);
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+
+// Try to load a saved game, otherwise show the animal picker
+if (loadGame()) {
+  pickScreen.classList.add('hidden');
+  gameScreen.classList.remove('hidden');
+  renderPets();
+  startGameLoop();
+} else {
+  buildAnimalGrid();
+}
+</script>
+
+</body>
+</html>
