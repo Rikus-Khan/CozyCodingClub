@@ -458,7 +458,7 @@
 
 <!-- ── Nav ─────────────────────────────────────────── -->
 <nav>
-  <div class="nav-logo">{ cozy_coding_club <span class="blink">_</span> }</div>
+  <div class="nav-logo">{ <span id="nav-logo-text">cozy_coding_club</span> <span class="blink">_</span> }</div>
   <button class="hamburger" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
@@ -568,6 +568,58 @@
 
 <!-- ── JS ───────────────────────────────────────────── -->
 <script>
+  // ── Random nav logo text ──
+  const logoSayings = [
+    "cozy_coding_club",
+    "fibberjiggering",
+    "canoodling",
+    "discombobulating",
+    "flibbertigibetting",
+    "recalibrating_the_vibes",
+    "untangling_spaghetti",
+    "wrangling_pixels",
+    "defragmenting_thoughts",
+    "turbo_encabulating",
+    "reverse_engineering_fun",
+    "compiling_coziness",
+    "deploying_sparkles",
+    "optimizing_blanket_forts",
+    "initializing_snack_mode",
+    "buffering_creativity",
+    "syncing_good_vibes",
+    "decrypting_the_matrix",
+    "reticulating_splines",
+    "parsing_hot_cocoa",
+    "defrosting_the_code",
+    "yeetifying_bugs",
+    "unscrambling_chaos",
+    "manifesting_features",
+    "calibrating_cozy_levels",
+    "loading_cat_gifs",
+    "howling_at_the_server",
+    "sniffing_out_bugs",
+    "wagging_my_tail_pointer",
+    "running_with_the_pack.js",
+    "chasing_my_own_recursion",
+    "pawing_at_the_keyboard",
+    "alpha_wolf_debugging",
+    "howling_at_the_moonlight_theme",
+    "fetching_data_like_a_good_wolf",
+    "digging_through_the_codebase",
+    "marking_my_territory.git",
+    "growling_at_syntax_errors",
+    "napping_between_deploys",
+    "shaking_off_merge_conflicts",
+    "tracking_scents_in_the_logs",
+    "ears_perked_for_exceptions",
+    "trotting_through_the_forest_of_divs",
+    "burrowing_into_nested_loops",
+    "tail_wagging_at_green_tests",
+    "howling_because_it_compiled",
+  ];
+  document.getElementById('nav-logo-text').textContent =
+    logoSayings[Math.floor(Math.random() * logoSayings.length)];
+
   // ── Typing effect ──
   const phrases = [
     "12 years old & writing code!",
@@ -578,6 +630,27 @@
     "Yes to all is my best friend",
     "debugging my way to chill",
     "Vibe Happens!",
+    "blanket + laptop + snacks = productivity",
+    "coding in pajamas since day one",
+    "WARNING: may contain cats on keyboards",
+    "fueled by hot cocoa & pixel dreams",
+    "cozy mode: always on",
+    "console.log(\"hello world! 🌎\")",
+    "99 little bugs in the code... 99 little bugs...",
+    "it works on my machine ¯\\_(ツ)_/¯",
+    "// TODO: take over the world",
+    "while (alive) { learn(); build(); repeat(); }",
+    "git commit -m \"something cool\"",
+    "404: boredom not found",
+    "turning ideas into pixels",
+    "one project at a time, one bug at a time",
+    "breaking things & learning stuff",
+    "shipping code & having fun",
+    "professional button clicker",
+    "the internet needed more sparkles",
+    "plot twist: the bug was a feature",
+    "50% code, 50% snacks, 100% cozy",
+    "I don't always test my code, but when I do...",
   ];
   const typedEl = document.getElementById('typed');
   let phraseIdx = 0, charIdx = 0, deleting = false, pause = 0;
