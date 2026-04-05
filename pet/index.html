@@ -290,21 +290,25 @@
   }
   .back-link:hover { color: var(--pink); }
 
-  /* Size slider top right */
-  .size-slider-row {
+  /* ── Pause button top right ─────────────────────────── */
+  .pause-btn {
     position: absolute;
     top: 12px;
     right: 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--muted);
-    font-size: 13px;
+    font-family: var(--pixel-font);
+    font-size: 9px;
+    padding: 8px 14px;
+    border: 2px solid var(--cyan);
+    background: rgba(0,0,0,0.4);
+    color: var(--cyan);
+    border-radius: 6px;
+    cursor: pointer;
     z-index: 50;
+    transition: all 0.2s;
   }
-  .size-slider-row input[type="range"] {
-    width: 120px;
-    accent-color: var(--cyan);
+  .pause-btn:hover {
+    background: rgba(0, 255, 245, 0.15);
+    box-shadow: 0 0 10px rgba(0, 255, 245, 0.3);
   }
 
   /* Pet play area — this is where all pets live */
@@ -331,7 +335,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 32%;
+    top: 38%;
     height: 60px;
     z-index: 1;
     /* Repeating fence pickets */
@@ -363,24 +367,196 @@
   }
 
   /* Little flowers in the grass */
-  .flowers {
+  /* Flower petals layer — 4 petals around each center */
+  .flower-petals {
     position: absolute;
-    bottom: 15%;
+    top: 40%;
+    bottom: 0;
     left: 0;
     right: 0;
-    height: 40px;
     z-index: 1;
     background:
-      radial-gradient(4px 4px at 8% 50%,  #FF6B8A 60%, transparent 60%),
-      radial-gradient(4px 4px at 15% 30%, #FFD700 60%, transparent 60%),
-      radial-gradient(4px 4px at 25% 60%, #FF6B8A 60%, transparent 60%),
-      radial-gradient(4px 4px at 35% 40%, #FFFFFF 60%, transparent 60%),
-      radial-gradient(4px 4px at 48% 55%, #FFD700 60%, transparent 60%),
-      radial-gradient(4px 4px at 58% 35%, #FF6B8A 60%, transparent 60%),
-      radial-gradient(4px 4px at 68% 50%, #FFFFFF 60%, transparent 60%),
-      radial-gradient(4px 4px at 78% 40%, #FFD700 60%, transparent 60%),
-      radial-gradient(4px 4px at 88% 55%, #FF6B8A 60%, transparent 60%),
-      radial-gradient(4px 4px at 95% 35%, #FFFFFF 60%, transparent 60%);
+      /* Row 1 — each flower = 4 petals in a cross pattern */
+      radial-gradient(10px 10px at 4.5% 6%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 6.5% 6%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 5.5% 3.5%,#FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 5.5% 8.5%,#FF85A2 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 19% 10%,  #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 21% 10%,  #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 20% 7.5%, #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 20% 12.5%,#FFE066 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 34% 5%,   #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 36% 5%,   #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 35% 2.5%, #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 35% 7.5%, #FFFFFF 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 52% 9%,   #FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 54% 9%,   #FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 53% 6.5%, #FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 53% 11.5%,#FF85A2 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 69% 7%,   #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 71% 7%,   #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 70% 4.5%, #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 70% 9.5%, #FFE066 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 86% 11%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 88% 11%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 87% 8.5%, #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 87% 13.5%,#FFFFFF 50%, transparent 50%),
+
+      /* Row 2 */
+      radial-gradient(10px 10px at 9% 24%,   #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 11% 24%,  #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 10% 21.5%,#FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 10% 26.5%,#FFE066 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 26% 22%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 28% 22%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 27% 19.5%,#FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 27% 24.5%,#FF85A2 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 43% 26%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 45% 26%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 44% 23.5%,#FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 44% 28.5%,#FFFFFF 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 60% 23%,  #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 62% 23%,  #FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 61% 20.5%,#FFE066 50%, transparent 50%),
+      radial-gradient(10px 10px at 61% 25.5%,#FFE066 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 78% 25%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 80% 25%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 79% 22.5%,#FF85A2 50%, transparent 50%),
+      radial-gradient(10px 10px at 79% 27.5%,#FF85A2 50%, transparent 50%),
+
+      radial-gradient(10px 10px at 94% 21%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 96% 21%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 95% 18.5%,#FFFFFF 50%, transparent 50%),
+      radial-gradient(10px 10px at 95% 23.5%,#FFFFFF 50%, transparent 50%);
+  }
+
+  /* Flower centers — yellow/orange dots on top of petals */
+  .flower-centers {
+    position: absolute;
+    top: 40%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    background:
+      /* Row 1 centers */
+      radial-gradient(6px 6px at 5.5% 6%,   #E8A317 60%, transparent 60%),
+      radial-gradient(6px 6px at 20% 10%,    #CC6600 60%, transparent 60%),
+      radial-gradient(6px 6px at 35% 5%,     #E8A317 60%, transparent 60%),
+      radial-gradient(6px 6px at 53% 9%,     #CC6600 60%, transparent 60%),
+      radial-gradient(6px 6px at 70% 7%,     #E8A317 60%, transparent 60%),
+      radial-gradient(6px 6px at 87% 11%,    #CC6600 60%, transparent 60%),
+      /* Row 2 centers */
+      radial-gradient(6px 6px at 10% 24%,    #CC6600 60%, transparent 60%),
+      radial-gradient(6px 6px at 27% 22%,    #E8A317 60%, transparent 60%),
+      radial-gradient(6px 6px at 44% 26%,    #CC6600 60%, transparent 60%),
+      radial-gradient(6px 6px at 61% 23%,    #E8A317 60%, transparent 60%),
+      radial-gradient(6px 6px at 79% 25%,    #CC6600 60%, transparent 60%),
+      radial-gradient(6px 6px at 95% 21%,    #E8A317 60%, transparent 60%);
+  }
+
+  /* Green stems under each flower */
+  .flower-stems {
+    position: absolute;
+    top: 40%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 0;
+    background:
+      /* Row 1 stems */
+      linear-gradient(0deg, transparent 0%, transparent 85%, #3A8C3A 85%, #3A8C3A 87%, transparent 87%) no-repeat 5.5% 0 / 2px 18%,
+      linear-gradient(0deg, transparent 0%, transparent 85%, #3A8C3A 85%, #3A8C3A 87%, transparent 87%) no-repeat 20% 0 / 2px 20%,
+      linear-gradient(0deg, transparent 0%, transparent 85%, #3A8C3A 85%, #3A8C3A 87%, transparent 87%) no-repeat 35% 0 / 2px 16%,
+      linear-gradient(0deg, transparent 0%, transparent 85%, #3A8C3A 85%, #3A8C3A 87%, transparent 87%) no-repeat 53% 0 / 2px 19%,
+      linear-gradient(0deg, transparent 0%, transparent 85%, #3A8C3A 85%, #3A8C3A 87%, transparent 87%) no-repeat 70% 0 / 2px 17%,
+      linear-gradient(0deg, transparent 0%, transparent 85%, #3A8C3A 85%, #3A8C3A 87%, transparent 87%) no-repeat 87% 0 / 2px 21%;
+  }
+
+  .flowers {
+    position: absolute;
+    top: 38%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    background:
+      /* Top row near fence */
+      radial-gradient(14px 14px at 3% 8%,   #FF6B8A 50%, transparent 50%),
+      radial-gradient(12px 12px at 10% 12%,  #FFD700 50%, transparent 50%),
+      radial-gradient(14px 14px at 20% 6%,   #FFFFFF 50%, transparent 50%),
+      radial-gradient(16px 16px at 30% 10%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(12px 12px at 42% 8%,   #FFD700 50%, transparent 50%),
+      radial-gradient(14px 14px at 55% 12%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(12px 12px at 65% 6%,   #FFFFFF 50%, transparent 50%),
+      radial-gradient(16px 16px at 76% 10%,  #FFD700 50%, transparent 50%),
+      radial-gradient(14px 14px at 88% 8%,   #FF85A2 50%, transparent 50%),
+      radial-gradient(12px 12px at 97% 12%,  #FF6B8A 50%, transparent 50%),
+      /* Second row */
+      radial-gradient(16px 16px at 6% 25%,   #FFD700 50%, transparent 50%),
+      radial-gradient(12px 12px at 14% 22%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(14px 14px at 23% 28%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(12px 12px at 34% 24%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(16px 16px at 45% 26%,  #FFD700 50%, transparent 50%),
+      radial-gradient(14px 14px at 53% 22%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(12px 12px at 62% 28%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(16px 16px at 72% 24%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(14px 14px at 82% 26%,  #FFD700 50%, transparent 50%),
+      radial-gradient(12px 12px at 93% 22%,  #FF6B8A 50%, transparent 50%),
+      /* Third row */
+      radial-gradient(14px 14px at 4% 42%,   #FFFFFF 50%, transparent 50%),
+      radial-gradient(16px 16px at 12% 38%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(12px 12px at 22% 44%,  #FFD700 50%, transparent 50%),
+      radial-gradient(14px 14px at 32% 40%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(16px 16px at 40% 42%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(12px 12px at 50% 38%,  #FFD700 50%, transparent 50%),
+      radial-gradient(14px 14px at 60% 44%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(16px 16px at 70% 40%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(12px 12px at 80% 42%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(14px 14px at 90% 38%,  #FFD700 50%, transparent 50%),
+      /* Fourth row */
+      radial-gradient(12px 12px at 8% 58%,   #FF85A2 50%, transparent 50%),
+      radial-gradient(14px 14px at 18% 55%,  #FFD700 50%, transparent 50%),
+      radial-gradient(16px 16px at 27% 60%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(12px 12px at 37% 56%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(14px 14px at 47% 58%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(16px 16px at 57% 55%,  #FFD700 50%, transparent 50%),
+      radial-gradient(12px 12px at 67% 60%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(14px 14px at 77% 56%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(16px 16px at 87% 58%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(12px 12px at 95% 55%,  #FFD700 50%, transparent 50%),
+      /* Fifth row near bottom */
+      radial-gradient(16px 16px at 5% 75%,   #FFD700 50%, transparent 50%),
+      radial-gradient(14px 14px at 15% 72%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(12px 12px at 25% 78%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(16px 16px at 35% 74%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(14px 14px at 44% 76%,  #FFD700 50%, transparent 50%),
+      radial-gradient(12px 12px at 54% 72%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(16px 16px at 64% 78%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(14px 14px at 74% 74%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(12px 12px at 84% 76%,  #FFD700 50%, transparent 50%),
+      radial-gradient(16px 16px at 94% 72%,  #FF6B8A 50%, transparent 50%),
+      /* Bottom row */
+      radial-gradient(14px 14px at 2% 90%,   #FF6B8A 50%, transparent 50%),
+      radial-gradient(12px 12px at 11% 88%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(16px 16px at 20% 92%,  #FFD700 50%, transparent 50%),
+      radial-gradient(14px 14px at 30% 88%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(12px 12px at 39% 90%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(16px 16px at 48% 88%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(14px 14px at 58% 92%,  #FFD700 50%, transparent 50%),
+      radial-gradient(12px 12px at 68% 88%,  #FF85A2 50%, transparent 50%),
+      radial-gradient(16px 16px at 78% 90%,  #FF6B8A 50%, transparent 50%),
+      radial-gradient(14px 14px at 88% 88%,  #FFFFFF 50%, transparent 50%),
+      radial-gradient(12px 12px at 98% 92%,  #FFD700 50%, transparent 50%);
   }
 
   /* Clouds drifting across the sky */
@@ -496,6 +672,249 @@
     bottom: 85%;
   }
 
+  /* ── Tall trees (in the yard) ────────────────────────── */
+  .tall-tree {
+    position: absolute;
+    z-index: 3;
+  }
+
+  .tall-tree .trunk {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 4px;
+  }
+
+  .tall-tree .canopy {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50% 50% 45% 45%;
+  }
+
+  /* Big round tree on the left */
+  .tall-tree-1 {
+    left: -3%;
+    bottom: 38%;
+  }
+  .tall-tree-1 .trunk {
+    width: 36px;
+    height: 350px;
+    background: linear-gradient(90deg, #3D2510, #5C3A1E, #6B4226, #5C3A1E, #3D2510);
+    border-radius: 4px;
+  }
+  .tall-tree-1 .canopy {
+    width: 340px;
+    height: 400px;
+    bottom: 220px;
+    border-radius: 50% 50% 40% 40%;
+    background:
+      radial-gradient(circle 130px at 50% 45%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(circle 100px at 25% 35%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 100px at 75% 35%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 90px at 50% 18%, #48B848 70%, transparent 70%),
+      radial-gradient(circle 70px at 30% 12%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 70px at 70% 12%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 80px at 50% 58%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 60px at 20% 52%, #267326 70%, transparent 70%),
+      radial-gradient(circle 60px at 80% 52%, #267326 70%, transparent 70%),
+      radial-gradient(circle 90px at 50% 75%, #1A5C1A 70%, transparent 70%),
+      radial-gradient(circle 70px at 30% 80%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 70px at 70% 80%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 55px at 45% 90%, #267326 70%, transparent 70%),
+      radial-gradient(circle 55px at 55% 88%, #1A5C1A 70%, transparent 70%);
+  }
+
+  /* Big round tree on the right */
+  .tall-tree-2 {
+    right: -3%;
+    bottom: 38%;
+  }
+  .tall-tree-2 .trunk {
+    width: 32px;
+    height: 380px;
+    background: linear-gradient(90deg, #3D2510, #5C3A1E, #6B4226, #5C3A1E, #3D2510);
+    border-radius: 4px;
+  }
+  .tall-tree-2 .canopy {
+    width: 310px;
+    height: 380px;
+    bottom: 250px;
+    border-radius: 50% 50% 40% 40%;
+    background:
+      radial-gradient(circle 120px at 50% 42%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(circle 95px at 28% 32%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 95px at 72% 32%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 80px at 50% 16%, #48B848 70%, transparent 70%),
+      radial-gradient(circle 60px at 35% 10%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 60px at 65% 10%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 75px at 50% 58%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 55px at 22% 50%, #267326 70%, transparent 70%),
+      radial-gradient(circle 55px at 78% 50%, #267326 70%, transparent 70%),
+      radial-gradient(circle 85px at 50% 72%, #1A5C1A 70%, transparent 70%),
+      radial-gradient(circle 65px at 30% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 65px at 70% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 50px at 42% 88%, #267326 70%, transparent 70%),
+      radial-gradient(circle 50px at 58% 86%, #1A5C1A 70%, transparent 70%);
+  }
+
+  /* Smaller round tree center-back */
+  .tall-tree-3 {
+    left: 32%;
+    bottom: 38%;
+  }
+  .tall-tree-3 .trunk {
+    width: 28px;
+    height: 320px;
+    background: linear-gradient(90deg, #3D2510, #5C3A1E, #6B4226, #5C3A1E, #3D2510);
+    border-radius: 4px;
+  }
+  .tall-tree-3 .canopy {
+    width: 280px;
+    height: 340px;
+    bottom: 190px;
+    border-radius: 50% 50% 40% 40%;
+    background:
+      radial-gradient(circle 105px at 50% 42%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(circle 80px at 28% 32%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 80px at 72% 32%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 70px at 50% 18%, #48B848 70%, transparent 70%),
+      radial-gradient(circle 50px at 35% 10%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 50px at 65% 10%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 65px at 50% 55%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 45px at 25% 50%, #267326 70%, transparent 70%),
+      radial-gradient(circle 45px at 75% 50%, #267326 70%, transparent 70%),
+      radial-gradient(circle 75px at 50% 72%, #1A5C1A 70%, transparent 70%),
+      radial-gradient(circle 55px at 30% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 55px at 70% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 45px at 48% 88%, #267326 70%, transparent 70%);
+  }
+
+  /* Between left and center */
+  .tall-tree-4 {
+    left: 12%;
+    bottom: 38%;
+  }
+  .tall-tree-4 .trunk {
+    width: 30px;
+    height: 340px;
+    background: linear-gradient(90deg, #3D2510, #5C3A1E, #6B4226, #5C3A1E, #3D2510);
+    border-radius: 4px;
+  }
+  .tall-tree-4 .canopy {
+    width: 300px;
+    height: 370px;
+    bottom: 210px;
+    border-radius: 50% 50% 40% 40%;
+    background:
+      radial-gradient(circle 115px at 50% 42%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(circle 90px at 26% 32%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 90px at 74% 32%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 75px at 50% 18%, #48B848 70%, transparent 70%),
+      radial-gradient(circle 55px at 32% 10%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 55px at 68% 10%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 70px at 50% 55%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 50px at 22% 50%, #267326 70%, transparent 70%),
+      radial-gradient(circle 50px at 78% 50%, #267326 70%, transparent 70%),
+      radial-gradient(circle 80px at 50% 72%, #1A5C1A 70%, transparent 70%),
+      radial-gradient(circle 60px at 28% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 60px at 72% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 48px at 45% 88%, #267326 70%, transparent 70%);
+  }
+
+  /* Between center and right */
+  .tall-tree-5 {
+    right: 14%;
+    bottom: 38%;
+  }
+  .tall-tree-5 .trunk {
+    width: 34px;
+    height: 360px;
+    background: linear-gradient(90deg, #3D2510, #5C3A1E, #6B4226, #5C3A1E, #3D2510);
+    border-radius: 4px;
+  }
+  .tall-tree-5 .canopy {
+    width: 320px;
+    height: 390px;
+    bottom: 230px;
+    border-radius: 50% 50% 40% 40%;
+    background:
+      radial-gradient(circle 125px at 50% 42%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(circle 95px at 25% 32%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 95px at 75% 32%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 80px at 50% 16%, #48B848 70%, transparent 70%),
+      radial-gradient(circle 60px at 30% 10%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 60px at 70% 10%, #55CC55 65%, transparent 65%),
+      radial-gradient(circle 75px at 50% 55%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 55px at 20% 50%, #267326 70%, transparent 70%),
+      radial-gradient(circle 55px at 80% 50%, #267326 70%, transparent 70%),
+      radial-gradient(circle 85px at 50% 72%, #1A5C1A 70%, transparent 70%),
+      radial-gradient(circle 65px at 28% 80%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 65px at 72% 80%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 50px at 46% 90%, #267326 70%, transparent 70%);
+  }
+
+  /* Far left, filling gap */
+  .tall-tree-6 {
+    left: 52%;
+    bottom: 38%;
+  }
+  .tall-tree-6 .trunk {
+    width: 26px;
+    height: 300px;
+    background: linear-gradient(90deg, #3D2510, #5C3A1E, #6B4226, #5C3A1E, #3D2510);
+    border-radius: 4px;
+  }
+  .tall-tree-6 .canopy {
+    width: 260px;
+    height: 320px;
+    bottom: 175px;
+    border-radius: 50% 50% 40% 40%;
+    background:
+      radial-gradient(circle 95px at 50% 42%, #267326 70%, transparent 70%),
+      radial-gradient(circle 75px at 28% 32%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(circle 75px at 72% 32%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(circle 60px at 50% 18%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 45px at 35% 10%, #48B848 65%, transparent 65%),
+      radial-gradient(circle 45px at 65% 10%, #48B848 65%, transparent 65%),
+      radial-gradient(circle 60px at 50% 55%, #1A5C1A 70%, transparent 70%),
+      radial-gradient(circle 70px at 50% 72%, #1A5C1A 70%, transparent 70%),
+      radial-gradient(circle 50px at 30% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 50px at 70% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 42px at 48% 88%, #267326 70%, transparent 70%);
+  }
+
+  /* Far right, filling gap */
+  .tall-tree-7 {
+    right: 30%;
+    bottom: 38%;
+  }
+  .tall-tree-7 .trunk {
+    width: 26px;
+    height: 310px;
+    background: linear-gradient(90deg, #3D2510, #5C3A1E, #6B4226, #5C3A1E, #3D2510);
+    border-radius: 4px;
+  }
+  .tall-tree-7 .canopy {
+    width: 270px;
+    height: 330px;
+    bottom: 180px;
+    border-radius: 50% 50% 40% 40%;
+    background:
+      radial-gradient(circle 100px at 50% 42%, #267326 70%, transparent 70%),
+      radial-gradient(circle 78px at 26% 32%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(circle 78px at 74% 32%, #2D8B2D 70%, transparent 70%),
+      radial-gradient(circle 65px at 50% 18%, #3AA03A 70%, transparent 70%),
+      radial-gradient(circle 48px at 33% 10%, #48B848 65%, transparent 65%),
+      radial-gradient(circle 48px at 67% 10%, #48B848 65%, transparent 65%),
+      radial-gradient(circle 62px at 50% 55%, #1A5C1A 70%, transparent 70%),
+      radial-gradient(circle 72px at 50% 72%, #1A5C1A 70%, transparent 70%),
+      radial-gradient(circle 52px at 28% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 52px at 72% 78%, #1E6B1E 70%, transparent 70%),
+      radial-gradient(circle 44px at 50% 88%, #267326 70%, transparent 70%);
+  }
+
   /* ── Individual pet on screen ──────────────────────── */
   .pet {
     position: absolute;
@@ -507,23 +926,23 @@
 
   .pet-label {
     font-family: var(--pixel-font);
-    font-size: 9px;
+    font-size: 12px;
     color: var(--yellow);
     white-space: nowrap;
-    margin-bottom: 0px;
-    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+    margin-bottom: 4px;
+    text-shadow: 0 0 6px rgba(0,0,0,0.9);
   }
 
   /* Tiny stat bars above each pet */
   .pet-mini-bars {
     display: flex;
-    gap: 3px;
-    margin-bottom: 0px;
+    gap: 4px;
+    margin-bottom: 4px;
   }
 
   .pet-mini-bar-bg {
-    width: 30px;
-    height: 5px;
+    width: 50px;
+    height: 8px;
     background: rgba(0,0,0,0.5);
     border-radius: 1px;
     overflow: hidden;
@@ -544,12 +963,12 @@
     image-rendering: pixelated;
   }
 
-  /* Gentle bounce */
+  /* Gentle bounce — on the .pet container so it doesn't override sprite scale */
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-4px); }
+    50%      { transform: translateY(-8px); }
   }
-  .pet-sprite { animation: bounce 2s ease-in-out infinite; }
+  .pet { animation: bounce 2s ease-in-out infinite; }
 
   /* ── Side panel (slides out when you click a pet's bars) ── */
   .side-panel {
@@ -637,12 +1056,12 @@
 
   .action-btn {
     font-family: var(--pixel-font);
-    font-size: 8px;
-    padding: 10px 14px;
+    font-size: 10px;
+    padding: 14px 20px;
     border: 2px solid var(--cyan);
     background: var(--surface);
     color: var(--cyan);
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     position: relative;
     overflow: hidden;
@@ -805,11 +1224,7 @@
 <div id="game-screen" class="hidden">
   <a href="/" class="back-link">&lt; back</a>
 
-  <div class="size-slider-row">
-    <span>&#9898;</span>
-    <input type="range" id="size-slider" min="0" max="100" value="0">
-    <span>&#11044;</span>
-  </div>
+  <button class="pause-btn" id="pause-btn">PAUSE</button>
 
   <div class="pet-area" id="pet-area">
     <!-- Backyard decorations -->
@@ -817,10 +1232,20 @@
     <div class="cloud cloud-1"></div>
     <div class="cloud cloud-2"></div>
     <div class="cloud cloud-3"></div>
+    <div class="tall-tree tall-tree-1"><div class="trunk"></div><div class="canopy"></div></div>
+    <div class="tall-tree tall-tree-2"><div class="trunk"></div><div class="canopy"></div></div>
+    <div class="tall-tree tall-tree-3"><div class="trunk"></div><div class="canopy"></div></div>
+    <div class="tall-tree tall-tree-4"><div class="trunk"></div><div class="canopy"></div></div>
+    <div class="tall-tree tall-tree-5"><div class="trunk"></div><div class="canopy"></div></div>
+    <div class="tall-tree tall-tree-6"><div class="trunk"></div><div class="canopy"></div></div>
+    <div class="tall-tree tall-tree-7"><div class="trunk"></div><div class="canopy"></div></div>
     <div class="tree tree-1"><div class="trunk"></div><div class="leaves"></div></div>
     <div class="tree tree-2"><div class="trunk"></div><div class="leaves"></div></div>
     <div class="tree tree-3"><div class="trunk"></div><div class="leaves"></div></div>
     <div class="tree tree-4"><div class="trunk"></div><div class="leaves"></div></div>
+    <div class="flower-stems"></div>
+    <div class="flower-petals"></div>
+    <div class="flower-centers"></div>
     <div class="flowers"></div>
     <!-- Pets are placed here by JavaScript -->
   </div>
@@ -844,19 +1269,19 @@
 
   <!-- Action buttons always at bottom center -->
   <div class="bottom-buttons">
-    <button class="action-btn" id="btn-feed">
+    <button class="action-btn" id="btn-feed" title="Feed your pet (+20 hunger, +2 XP)">
       <span class="cooldown-bar" id="cd-feed"></span>
       FEED
     </button>
-    <button class="action-btn" id="btn-play">
+    <button class="action-btn" id="btn-play" title="Play with your pet (+15 happiness, +2 XP)">
       <span class="cooldown-bar" id="cd-play"></span>
       PLAY
     </button>
-    <button class="action-btn" id="btn-sleep">
+    <button class="action-btn" id="btn-sleep" title="Let your pet rest (+25 energy)">
       <span class="cooldown-bar" id="cd-sleep"></span>
       SLEEP
     </button>
-    <button class="action-btn" id="btn-walk">
+    <button class="action-btn" id="btn-walk" title="Take your pet for a walk (+3 XP, 3 min cooldown)">
       <span class="cooldown-bar" id="cd-walk"></span>
       WALK YOUR PET
     </button>
@@ -1046,7 +1471,7 @@ function getCatSprite(b, d, l, e, n, w, stage) {
         px(2,7,d), px(3,7,d), px(4,7,d), px(5,7,d), px(6,7,d),
         px(2,8,d), px(3,8,d), px(5,8,d), px(6,8,d),
       ].join(','),
-      scale: 45, w: 16, h: 16
+      scale: 20, w: 16, h: 16
     };
   }
   if (stage === 'teen') {
@@ -1066,7 +1491,7 @@ function getCatSprite(b, d, l, e, n, w, stage) {
         px(3,11,d), px(4,11,d), px(5,11,d), px(6,11,d), px(7,11,d), px(8,11,d), px(9,11,d), px(10,11,d), px(11,11,d),
         px(3,12,d), px(4,12,d), px(6,12,d), px(8,12,d), px(9,12,d), px(12,12,d),
       ].join(','),
-      scale: 45, w: 16, h: 16
+      scale: 20, w: 16, h: 16
     };
   }
   // adult (16x16)
@@ -1591,6 +2016,7 @@ let gameState = {
   selectedPetId: null, // which pet is currently selected
   isWalking: false,
   walkCooldownEnd: 0,
+  paused: false,
 };
 
 let nextPetId = 1;
@@ -1754,7 +2180,8 @@ document.getElementById('name-input').addEventListener('keydown', function(ev) {
 
 function renderPets() {
   const area = document.getElementById('pet-area');
-  area.innerHTML = '';
+  // Only remove pet elements, not the backyard decorations!
+  area.querySelectorAll('.pet').forEach(el => el.remove());
 
   gameState.pets.forEach(pet => {
     if (!pet.alive) return;
@@ -1855,6 +2282,7 @@ let gameLoopInterval = null;
 function startGameLoop() {
   // Run every second
   gameLoopInterval = setInterval(function() {
+    if (gameState.paused) return;
     const now = Date.now();
 
     gameState.pets.forEach(pet => {
@@ -2127,18 +2555,24 @@ document.addEventListener('touchmove', function(ev) {
 
 // Move pets toward the mouse/finger smoothly every frame
 function movePetsTowardMouse() {
+  if (gameState.paused) {
+    requestAnimationFrame(movePetsTowardMouse);
+    return;
+  }
+
   gameState.pets.forEach(pet => {
     if (!pet.alive) return;
 
     // How fast the pet moves (smaller = slower, more chill)
-    const speed = 0.03;
+    const speed = 0.015;
 
     // Move toward the mouse position
     const dx = mouseX - pet.x;
     const dy = mouseY - pet.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-    // Only move if not super close already
-    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+    // Only move if not close — stop when within 10% of the mouse
+    if (dist > 10) {
       pet.x += dx * speed;
       pet.y += dy * speed;
     }
@@ -2161,19 +2595,17 @@ function movePetsTowardMouse() {
 requestAnimationFrame(movePetsTowardMouse);
 
 // ═══════════════════════════════════════════════════════
-// SIZE SLIDER
+// PAUSE
 // ═══════════════════════════════════════════════════════
 
-const sizeSlider = document.getElementById('size-slider');
-if (sizeSlider) {
-  const petArea = document.getElementById('pet-area');
-  sizeSlider.addEventListener('input', function() {
-    const pct = Number(this.value) / 100;
-    const scale = 1 + pct * 0.8; // scale from 1.0 to 1.8
-    petArea.style.transform = 'scale(' + scale + ')';
-    petArea.style.transformOrigin = 'top center';
-  });
-}
+document.getElementById('pause-btn').addEventListener('click', function() {
+  gameState.paused = !gameState.paused;
+  this.textContent = gameState.paused ? 'RESUME' : 'PAUSE';
+
+  // Dim the play area when paused
+  const area = document.getElementById('pet-area');
+  area.style.filter = gameState.paused ? 'brightness(0.5)' : '';
+});
 
 // ═══════════════════════════════════════════════════════
 // LOCALSTORAGE SAVE/LOAD
