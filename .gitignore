@@ -1,5 +1,5 @@
-# Local Claude Code settings (may contain parent passphrase)
-.claude/settings.local.json
+# Claude Code config (settings, hooks, etc.)
+.claude/
 
 # Environment files
 .env
@@ -12,6 +12,5 @@ Thumbs.db
 # Parent mode
 .parent-mode
 
-# Claude Code project instructions and hooks (contain private info)
+# Claude Code project instructions (contains private info)
 CLAUDE.md
-.claude/hooks/
