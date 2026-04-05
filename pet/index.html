@@ -2263,6 +2263,7 @@ function renderPetSwitcher() {
       ev.stopPropagation();
       gameState.selectedPetId = pet.id;
       renderPets();
+      updateButtonStates();
       openSidePanel(pet);
     });
     bar.appendChild(btn);
@@ -2338,6 +2339,7 @@ function renderPets() {
     petEl.addEventListener('click', function(ev) {
       ev.stopPropagation();
       gameState.selectedPetId = pet.id;
+      updateButtonStates();
       openSidePanel(pet);
     });
 
@@ -2478,22 +2480,70 @@ function showNoPetPopup() {
 }
 
 // Feed button
+// ── Per-pet cooldowns ─────────────────────────────────
+// Cooldowns are stored on each pet object as _feedCooldown, _playCooldown, etc.
+// These hold the timestamp when the cooldown ends.
+
+function updateButtonStates() {
+  const pet = getSelectedPet();
+  const now = Date.now();
+  const feedBtn = document.getElementById('btn-feed');
+  const playBtn = document.getElementById('btn-play');
+  const sleepBtn = document.getElementById('btn-sleep');
+
+  if (!pet) {
+    feedBtn.disabled = false;
+    playBtn.disabled = false;
+    sleepBtn.disabled = false;
+    return;
+  }
+
+  // Feed
+  if (pet._feedCooldown && now < pet._feedCooldown) {
+    feedBtn.disabled = true;
+    const remaining = pet._feedCooldown - now;
+    animateCooldown('cd-feed', remaining);
+  } else {
+    feedBtn.disabled = false;
+    document.getElementById('cd-feed').style.width = '0%';
+  }
+
+  // Play
+  if (pet._playCooldown && now < pet._playCooldown) {
+    playBtn.disabled = true;
+    const remaining = pet._playCooldown - now;
+    animateCooldown('cd-play', remaining);
+  } else {
+    playBtn.disabled = false;
+    document.getElementById('cd-play').style.width = '0%';
+  }
+
+  // Sleep
+  if (pet._state === 'sleeping') {
+    sleepBtn.disabled = true;
+    const remaining = pet._sleepUntil - now;
+    if (remaining > 0) animateCooldown('cd-sleep', remaining);
+  } else {
+    sleepBtn.disabled = false;
+    document.getElementById('cd-sleep').style.width = '0%';
+  }
+}
+
 document.getElementById('btn-feed').addEventListener('click', function() {
   const pet = getSelectedPet();
   if (!pet) return showNoPetPopup();
 
-  const btn = this;
-  if (btn.disabled) return;
+  const now = Date.now();
+  if (pet._feedCooldown && now < pet._feedCooldown) return;
 
   pet.hunger = 100;
   pet.xp += 2;
   checkLevelUp(pet);
   renderPets();
 
-  // 3 second cooldown
-  btn.disabled = true;
-  animateCooldown('cd-feed', 3000);
-  setTimeout(function() { btn.disabled = false; }, 3000);
+  // 3 second cooldown on this pet
+  pet._feedCooldown = now + 3000;
+  updateButtonStates();
 });
 
 // Play button
@@ -2501,41 +2551,32 @@ document.getElementById('btn-play').addEventListener('click', function() {
   const pet = getSelectedPet();
   if (!pet) return showNoPetPopup();
 
-  const btn = this;
-  if (btn.disabled) return;
+  const now = Date.now();
+  if (pet._playCooldown && now < pet._playCooldown) return;
 
   pet.happiness = 100;
   pet.xp += 2;
   checkLevelUp(pet);
   renderPets();
 
-  // 5 second cooldown
-  btn.disabled = true;
-  animateCooldown('cd-play', 5000);
-  setTimeout(function() { btn.disabled = false; }, 5000);
+  // 5 second cooldown on this pet
+  pet._playCooldown = now + 5000;
+  updateButtonStates();
 });
 
 // Sleep button
 document.getElementById('btn-sleep').addEventListener('click', function() {
   const pet = getSelectedPet();
   if (!pet) return showNoPetPopup();
-
-  const btn = this;
-  if (btn.disabled) return;
-  if (pet._state === 'sleeping') return; // already sleeping
+  if (pet._state === 'sleeping') return;
 
   // Put the pet to sleep for 60 seconds
   pet._state = 'sleeping';
   pet._sleepUntil = Date.now() + 60 * 1000;
-  // Pet finds a comfortable spot (stays where it is)
   pet._vx = 0;
   pet._vy = 0;
   renderPets();
-
-  // Button disabled for 60 seconds
-  btn.disabled = true;
-  animateCooldown('cd-sleep', 60 * 1000);
-  setTimeout(function() { btn.disabled = false; }, 60 * 1000);
+  updateButtonStates();
 });
 
 // Walk button
