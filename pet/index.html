@@ -2731,10 +2731,15 @@ const GRASS_TOP = 62;  // top of grass area — well below the fence
 const GRASS_BOTTOM = 82;
 const GRASS_LEFT = 5;
 const GRASS_RIGHT = 88;
+// The invisible wall — a pet's FEET can go right up to the fence, but no further.
+// Wandering pets still pick spots below GRASS_TOP, so they stroll back down after a walk.
+const FENCE_LINE = 43;
 
 function clampToGrass(pet) {
-  // Climbers can go higher when climbing
-  const minY = (pet._state === 'climbing') ? 15 : GRASS_TOP;
+  // pet.y is the TOP of the pet (its name tag), so subtract the pet's height
+  // to find where the top is when the feet touch the fence.
+  // Climbers can go higher when climbing.
+  const minY = (pet._state === 'climbing') ? 15 : FENCE_LINE - (pet._heightPct || 0);
   pet.x = Math.max(GRASS_LEFT, Math.min(GRASS_RIGHT, pet.x));
   pet.y = Math.max(minY, Math.min(GRASS_BOTTOM, pet.y));
 }
@@ -2770,8 +2775,9 @@ function updatePetAI(pet) {
   // If walking with owner, follow mouse smoothly
   if (gameState.isWalking && pet.id === gameState.selectedPetId) {
     pet._state = 'walking';
+    // Aim the pet's FEET at the mouse, not its name tag
     const dx = mouseX - pet.x;
-    const dy = mouseY - pet.y;
+    const dy = (mouseY - (pet._heightPct || 0)) - pet.y;
     // Simple smooth lerp — move 2% of the remaining distance each frame
     pet.x += dx * 0.02;
     pet.y += dy * 0.02;
@@ -2860,8 +2866,11 @@ function movePetsTowardMouse() {
   // Update pet positions + z-index based on Y (lower = in front)
   const petEls = document.querySelectorAll('#pet-area .pet');
   const alivePets = gameState.pets.filter(p => p.alive);
+  const areaHeight = document.getElementById('pet-area').clientHeight;
   petEls.forEach((el, i) => {
     if (alivePets[i]) {
+      // Remember how tall this pet is (as a % of the yard) so we know where its feet are
+      if (areaHeight > 0) alivePets[i]._heightPct = el.offsetHeight / areaHeight * 100;
       el.style.left = alivePets[i].x + '%';
       el.style.top = alivePets[i].y + '%';
       // Pets lower on screen appear in front of trees/flowers
